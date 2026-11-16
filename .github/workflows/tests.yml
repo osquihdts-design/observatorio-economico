@@ -1,0 +1,23 @@
+# Ejecuta los tests en cada cambio (en Linux y en Windows, como el ordenador de casa).
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # No hace falta instalar nada: el proyecto solo usa la biblioteca estándar.
+      - name: Tests
+        run: python -m unittest -v

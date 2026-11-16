@@ -106,7 +106,7 @@ def _calendario(desde: str, hasta: str, frecuencia: str) -> list[str]:
 
 def _avisos(res, pruebas: dict) -> list[str]:
     avisos = []
-    no_estacionarias = [n for n, a in pruebas.items() if not a["estacionaria"]]
+    no_estacionarias = [n for n, a in pruebas.items() if a["estacionaria"] is False]
     if no_estacionarias:
         avisos.append("Variables NO estacionarias según el test ADF: " + "; ".join(no_estacionarias)
                       + ". La regresión puede ser espuria: prueba con primeras diferencias o tasas interanuales.")
@@ -134,8 +134,16 @@ def _estimar(cuerpo: dict):
         robustos=bool(cuerpo.get("robustos", True)), retardos=int(retardos) if retardos not in (None, "") else None,
         fechas=datos.fechas,
     )
-    pruebas = {n: time_series.adf(v) for n, v in datos.columnas.items()}
-    return datos, res, pruebas
+    return datos, res, {n: _adf_seguro(v) for n, v in datos.columnas.items()}
+
+
+def _adf_seguro(valores: list[float]) -> dict:
+    """Test ADF; si no se puede calcular para una variable, la regresión sigue y se explica por qué."""
+    try:
+        return time_series.adf(valores)
+    except ValueError as e:
+        return {"estadistico": None, "p_valor": None, "retardos": None, "n": len(valores),
+                "criticos": {"1%": None, "5%": None, "10%": None}, "estacionaria": None, "conclusion": str(e)}
 
 
 # ----------------------------------------------------------------------------- Rutas de la API

@@ -96,6 +96,10 @@ def ols(y: list[float], x: dict[str, list[float]], variable_y: str = "y", consta
     scr = sum(e * e for e in residuos)               # suma de cuadrados de los residuos
     media = sum(y) / n
     sct = sum((v - media) ** 2 for v in y) if constante else sum(v * v for v in y)
+    if sct <= 1e-300:
+        raise ValueError(f"La variable «{variable_y}» no cambia en este periodo: no hay nada que explicar.")
+    if scr <= 1e-24 * sct:
+        raise ValueError("Ajuste perfecto: Y es una combinación exacta de las X (por ejemplo, la misma variable a ambos lados).")
     r2 = 1.0 - scr / sct if sct > 0 else 0.0
     gl = n - k
     r2_aj = 1.0 - (1.0 - r2) * (n - (1 if constante else 0)) / gl

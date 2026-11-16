@@ -77,6 +77,16 @@ class RegresionOLS(unittest.TestCase):
         var_hc0 = sum((x - media) ** 2 * e ** 2 for x, e in zip(ANSCOMBE_X, r.residuos)) / sxx ** 2
         self.assertAlmostEqual(r.errores[1], math.sqrt(var_hc0 * n / (n - 2)), places=8)
 
+    def test_casos_extremos(self):
+        with self.assertRaisesRegex(ValueError, "no cambia"):
+            ols([3.0] * 20, {"x": list(range(20))})
+        with self.assertRaisesRegex(ValueError, "Ajuste perfecto"):
+            ols([2.0 * v + 1 for v in range(20)], {"x": list(range(20))})
+        with self.assertRaisesRegex(ValueError, "colinealidad"):
+            ols(ANSCOMBE_Y, {"x": ANSCOMBE_X, "x_doble": [2 * v for v in ANSCOMBE_X]})
+        with self.assertRaisesRegex(ValueError, "más datos"):
+            ols([1.0, 2.0, 3.0], {"x": [1.0, 5.0, 2.0]})
+
     def test_durbin_watson(self):
         r = ols(ANSCOMBE_Y, {"x": ANSCOMBE_X})
         e = r.residuos

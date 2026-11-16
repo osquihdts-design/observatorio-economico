@@ -51,7 +51,10 @@ CREATE TABLE IF NOT EXISTS sincronizaciones (
 """
 
 
-def conectar(ruta: Path = config.BASE_DATOS) -> sqlite3.Connection:
+def conectar(ruta: Path | None = None) -> sqlite3.Connection:
+    """Abre la base de datos. Sin `ruta`, usa la de config.BASE_DATOS (leída en el momento,
+    así los tests pueden apuntar a una base temporal)."""
+    ruta = Path(ruta or config.BASE_DATOS)
     ruta.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(ruta)
     con.row_factory = sqlite3.Row
@@ -59,7 +62,7 @@ def conectar(ruta: Path = config.BASE_DATOS) -> sqlite3.Connection:
     return con
 
 
-def guardar(observaciones: list[Observacion], ruta: Path = config.BASE_DATOS) -> int:
+def guardar(observaciones: list[Observacion], ruta: Path | None = None) -> int:
     """Inserta o actualiza (si ya existía ese indicador-país-fecha). Devuelve cuántas filas."""
     filas = [tuple(o.como_dict()[c] for c in COLUMNAS) for o in observaciones]
     marcas = ", ".join("?" * len(COLUMNAS))
@@ -69,7 +72,7 @@ def guardar(observaciones: list[Observacion], ruta: Path = config.BASE_DATOS) ->
 
 
 def registrar_sincronizacion(fuente: str, inicio: datetime, ok: int, total: int, filas: int,
-                             errores: list[str], ruta: Path = config.BASE_DATOS) -> None:
+                             errores: list[str], ruta: Path | None = None) -> None:
     with closing(conectar(ruta)) as con, con:
         con.execute(
             "INSERT INTO sincronizaciones (source, started, finished, ok, indicators_ok, indicators_total, rows, errors) "
@@ -80,7 +83,7 @@ def registrar_sincronizacion(fuente: str, inicio: datetime, ok: int, total: int,
 
 
 def leer(indicador: str | None = None, paises: list[str] | None = None, desde: str | None = None,
-         ruta: Path = config.BASE_DATOS) -> list[dict]:
+         ruta: Path | None = None) -> list[dict]:
     """Datos filtrados, ordenados por indicador, país y fecha."""
     condiciones, valores = [], []
     if indicador:
@@ -98,7 +101,7 @@ def leer(indicador: str | None = None, paises: list[str] | None = None, desde: s
         return [dict(f) for f in filas]
 
 
-def resumen(ruta: Path = config.BASE_DATOS) -> list[dict]:
+def resumen(ruta: Path | None = None) -> list[dict]:
     """Una fila por indicador y país: nº de datos, primera y última fecha y último valor."""
     consulta = """
         SELECT o.source, o.indicator_id, o.indicator_name, o.country_code, o.unit, o.frequency,
@@ -113,7 +116,7 @@ def resumen(ruta: Path = config.BASE_DATOS) -> list[dict]:
         return [dict(f) for f in con.execute(consulta)]
 
 
-def ultimos_valores(cuantos: int = 2, ruta: Path = config.BASE_DATOS) -> list[dict]:
+def ultimos_valores(cuantos: int = 2, ruta: Path | None = None) -> list[dict]:
     """Los `cuantos` datos más recientes de cada indicador y país (para tarjetas y tablas resumen)."""
     consulta = """
         SELECT * FROM (
@@ -125,7 +128,7 @@ def ultimos_valores(cuantos: int = 2, ruta: Path = config.BASE_DATOS) -> list[di
         return [dict(f) for f in con.execute(consulta, (cuantos,))]
 
 
-def disponibles(ruta: Path = config.BASE_DATOS) -> dict[str, list[str]]:
+def disponibles(ruta: Path | None = None) -> dict[str, list[str]]:
     """Qué países tiene cada indicador: {indicador: [países]}."""
     with closing(conectar(ruta)) as con:
         resultado: dict[str, list[str]] = {}
@@ -134,7 +137,7 @@ def disponibles(ruta: Path = config.BASE_DATOS) -> dict[str, list[str]]:
         return resultado
 
 
-def estado_fuentes(ruta: Path = config.BASE_DATOS, horas_fresco: float = 24) -> dict[str, dict]:
+def estado_fuentes(ruta: Path | None = None, horas_fresco: float = 24) -> dict[str, dict]:
     """Semáforo por fuente a partir de su última sincronización.
 
     verde: todo bien y hace menos de `horas_fresco` horas
@@ -164,9 +167,10 @@ def estado_fuentes(ruta: Path = config.BASE_DATOS, horas_fresco: float = 24) -> 
     return estados
 
 
-def exportar_csv(destino: Path = config.CARPETA_DATOS / "observaciones.csv", ruta: Path = config.BASE_DATOS) -> Path:
+def exportar_csv(destino: Path | None = None, ruta: Path | None = None) -> Path:
     """Copia completa en CSV (separador «;» y coma decimal, para Excel en español)."""
     filas = leer(ruta=ruta)
+    destino = Path(destino or config.CARPETA_DATOS / "observaciones.csv")
     destino.parent.mkdir(parents=True, exist_ok=True)
     with destino.open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f, delimiter=";")

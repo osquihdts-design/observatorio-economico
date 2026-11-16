@@ -31,7 +31,8 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
    - API GET: catalogo, series, estado, resumen · POST: actualizar, lab/hp, lab/ccf, lab/ols, lab/dispersion, lab/exportar (xlsx).
    - Colores fijos por país (ES #C8102E, EA #003399…). Índices INE se rebasan a 2015 = 100 en el cliente (la API del INE no da la base).
    - El panel del navegador de Claude suele estar oculto: verificar con JS (datos, errores) además de capturas.
-4. Fase 4: más tests (API, conectores con respuestas grabadas), GitHub Actions y README.
+4. ✅ Fase 4: 48 tests (`tests/`: econometría, conectores con respuestas grabadas, almacenamiento, API de punta a punta sobre base temporal con `tests/base_temporal.py`), `.github/workflows/` (tests en Linux y Windows; actualización diaria que publica los datos como artifact) y `README.md`.
+   - `storage` lee `config.BASE_DATOS` en cada llamada (no como valor por defecto) para que los tests usen una base temporal.
 
 ## Ideas siguientes
 - Más indicadores (salarios, deuda pública, prima de riesgo, IPC por grupos, datos del INE por comunidades).

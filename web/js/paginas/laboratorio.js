@@ -215,7 +215,9 @@ function seccionOLS(ctx) {
         <thead><tr><th>Variable</th><th class="num">Estadístico</th><th class="num">p-valor</th><th class="num">Retardos</th><th class="num">Crítico 5 %</th><th>Resultado</th></tr></thead>
         <tbody>${r.adf.map((a) => `<tr><td>${a.variable}</td><td class="num">${fmt(a.estadistico, 3)}</td><td class="num">${fmt(a.p_valor, 3)}</td>
           <td class="num">${a.retardos}</td><td class="num">${fmt(a.criticos['5%'], 3)}</td>
-          <td>${a.estacionaria ? '<span class="chip" style="background:var(--good-soft);color:var(--good)">Estacionaria</span>' : '<span class="chip" style="background:var(--bad-soft);color:var(--bad)">No estacionaria</span>'}</td></tr>`).join('')}</tbody>
+          <td>${a.estacionaria === true ? '<span class="chip" style="background:var(--good-soft);color:var(--good)">Estacionaria</span>'
+            : a.estacionaria === false ? '<span class="chip" style="background:var(--bad-soft);color:var(--bad)">No estacionaria</span>'
+              : `<span class="chip" title="${a.conclusion}">No calculado</span>`}</td></tr>`).join('')}</tbody>
       </table></div>
       <div class="rejilla dos" style="margin-top:14px">
         <div><h3 style="font-size:14px;margin:0 0 4px">Observados y predichos</h3><div class="grafico bajo" id="ols-ajuste"></div></div>

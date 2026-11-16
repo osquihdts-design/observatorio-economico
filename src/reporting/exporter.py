@@ -31,6 +31,8 @@ def url_serie(fuente: str, codigo: str) -> str:
     if fuente == "EUROSTAT":
         tabla = codigo.split(" ")[0]
         return f"https://ec.europa.eu/eurostat/databrowser/view/{tabla}/default/table"
+    if "/" not in codigo:
+        return "https://data.ecb.europa.eu/"
     flujo, clave = codigo.split("/", 1)
     return f"https://data.ecb.europa.eu/data/datasets/{flujo}/{flujo}.{clave}"
 
@@ -99,8 +101,9 @@ def exportar_informe(ruta: Path, datos: Dataset, regresion: ResultadoOLS | None 
             tabla.append(["Variable", "Estadístico", "p-valor", "Retardos", "Valor crítico 5 %", "¿Estacionaria?", "Conclusión"])
             estilos[len(tabla) - 1] = N
             for nombre, a in adf.items():
+                estacionaria = {True: "Sí", False: "No"}.get(a["estacionaria"], "No calculado")
                 tabla.append([nombre, _redondear(a["estadistico"]), _redondear(a["p_valor"]), a["retardos"],
-                              _redondear(a["criticos"]["5%"]), a["estacionaria"], a["conclusion"]])
+                              _redondear(a["criticos"]["5%"]), estacionaria, a["conclusion"]])
         tabla += [[], ["Valores observados, ajustados y residuos"], ["Fecha", "Observado", "Ajustado", "Residuo"]]
         estilos[len(tabla) - 2] = N
         estilos[len(tabla) - 1] = N

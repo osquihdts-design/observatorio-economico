@@ -1,0 +1,37 @@
+# Descarga cada día los datos de INE, Eurostat y BCE y los publica como archivo descargable
+# (pestaña «Actions» → última ejecución → «Artifacts»). También se puede lanzar a mano.
+name: Actualizar datos
+
+on:
+  schedule:
+    - cron: "30 7 * * *"  # todos los días a las 07:30 UTC (después de las publicaciones de la mañana)
+  workflow_dispatch:
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: python -m unittest
+      - name: Descargar datos
+        # Si alguna fuente falla, el script termina con error y la ejecución sale en rojo para avisar.
+        run: python scripts/actualizar_datos.py
+      - name: Ejemplo de laboratorio (comprueba el motor econométrico con datos reales)
+        if: always()
+        run: python scripts/ejemplo_laboratorio.py
+      - name: Publicar los datos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: datos-observatorio
+          path: |
+            data/processed/observatorio.sqlite
+            data/processed/observaciones.csv
+            data/processed/ejemplo_curva_phillips.xlsx
+          if-no-files-found: warn
+          retention-days: 30

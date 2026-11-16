@@ -152,8 +152,18 @@ def adf(valores: list[float], max_retardos: int | None = None) -> dict:
 
     # Selección de retardos con la misma muestra para todos (la más corta), y estimación final con la muestra completa.
     inicio_comun = max_retardos + 1
-    mejor = min(range(max_retardos + 1), key=lambda p: regresion(p, inicio_comun).aic)
-    final = regresion(mejor, mejor + 1)
+
+    def aic(p: int) -> float:
+        try:
+            return regresion(p, inicio_comun).aic
+        except ValueError:  # con algunas series muy regulares, ciertos retardos son colineales
+            return math.inf
+
+    mejor = min(range(max_retardos + 1), key=aic)
+    try:
+        final = regresion(mejor, mejor + 1)
+    except ValueError as e:
+        raise ValueError("No se pudo calcular el test ADF: la serie es demasiado regular o tiene muy pocos datos.") from e
     tau = final.t[1]
     t_obs = final.n
     criticos = {nivel: b + b1 / t_obs + b2 / t_obs ** 2 for nivel, (b, b1, b2) in _CRITICOS_C.items()}
