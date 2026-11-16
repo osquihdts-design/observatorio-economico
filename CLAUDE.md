@@ -25,7 +25,10 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
    - Zona euro = `EA` (Eurostat: se prueba EA, EA21, EA20; une_rt_m solo tiene EA21). BCE `U2` → `EA`.
    - INE con `det=2&tip=AM` (fecha ISO y «TipoDato» por nombre). El INE no da el año base de los índices.
    - BCE: tipos diarios → último valor de cada mes. MRO = `MRR_RT` (continua desde 1999); MLF = `MLFR`.
-2. Fase 2: econometría (filtro HP, correlación cruzada con retardos, OLS con varias X, Newey-West, ADF, Durbin-Watson, AIC/BIC) y exportador .xlsx (zipfile + XML).
+2. ✅ Fase 2: `src/econometrics/` (algebra, distribuciones, time_series, regression, correlations, dataset) y `src/reporting/` (xlsx, exporter). 18 tests en `tests/` (`python -m unittest -v`), validados con Anscombe, tablas t/F y críticos de MacKinnon.
+   - HAC Newey-West con núcleo de Bartlett, L = ⌊4(n/100)^(2/9)⌋ y corrección n/(n−k) (como statsmodels). F de Wald con la matriz elegida.
+   - ADF con constante, retardos por AIC sobre muestra común y reestimación (como statsmodels); p-valor MacKinnon 1994, críticos MacKinnon 2010.
+   - `dataset.preparar`: si alguna variable es trimestral, todo pasa a medias trimestrales antes de transformar.
 3. Fase 3: interfaz multipágina (portada ejecutiva, inflación, mercado laboral, política monetaria, vivienda y salarios, laboratorio econométrico) leyendo de la base SQLite.
 4. Fase 4: tests (unittest), GitHub Actions y README.
 - La web actual (`servidor.py` + `datos.py`) sigue funcionando aparte hasta la fase 3.

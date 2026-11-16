@@ -53,6 +53,37 @@ para Excel en `data/processed/observaciones.csv` y muestra un semáforo por fuen
 
 Los códigos exactos de cada serie están en `src/config.py`.
 
+## Laboratorio econométrico (fase 2)
+
+Todo programado en Python estándar y comprobado con resultados publicados (ver «Tests»).
+
+- **Transformaciones:** niveles, primeras diferencias (Δ), logaritmos (ln), Δln y tasas interanuales.
+- **Filtro Hodrick-Prescott:** tendencia y ciclo (λ = 14400 mensual, 1600 trimestral, ajustable).
+- **Test de Dickey-Fuller aumentado:** estadístico, p-valor de MacKinnon, valores críticos y aviso
+  si la serie no es estacionaria (riesgo de regresión espuria).
+- **Correlación cruzada con retardos (lead-lag)** con bandas de significación al 95 %.
+- **Regresión MCO** con una o varias variables: coeficientes, errores estándar clásicos o robustos
+  HAC de Newey-West, t, p-valores, intervalos de confianza, R², R² ajustado, F, AIC, BIC y Durbin-Watson.
+- **Exportación a Excel** con las pestañas `Datos_Limpios`, `Metadatos_Fuentes` (con cita APA 7.ª de
+  cada serie), `Resultados_Regresion` y `Estadisticos_Descriptivos`.
+
+Ejemplo con datos reales (curva de Phillips en España, ADF, filtro HP, retardos del tipo del BCE
+y Excel final en `data/processed/ejemplo_curva_phillips.xlsx`):
+
+```
+python scripts/ejemplo_laboratorio.py
+```
+
+## Tests
+
+```
+python -m unittest -v
+```
+
+Comprueban, entre otras cosas, que la regresión reproduce los resultados publicados del cuarteto
+de Anscombe, que los p-valores coinciden con las tablas de la t de Student y la F, que el p-valor
+del ADF da 1 %, 5 % y 10 % en los valores críticos de MacKinnon, y que el Excel es un archivo válido.
+
 ## Archivos
 
 - `datos.py` — descarga y guarda los datos (cada indicador está explicado ahí).
@@ -64,3 +95,8 @@ Los códigos exactos de cada serie están en `src/config.py`.
 - `src/etl/storage.py` — base de datos SQLite y exportación a CSV.
 - `src/etl/pipeline.py` — descarga todo en paralelo y registra el estado de cada fuente.
 - `scripts/actualizar_datos.py` — actualiza los datos y enseña un resumen.
+- `src/econometrics/` — `algebra.py` (matrices), `distribuciones.py` (normal, t, F), `time_series.py`
+  (transformaciones, filtro HP, ADF), `regression.py` (MCO y Newey-West), `correlations.py`, `dataset.py`.
+- `src/reporting/` — `xlsx.py` (crea archivos Excel) y `exporter.py` (informe para el TFG y citas APA).
+- `scripts/ejemplo_laboratorio.py` — ejemplo completo con datos reales.
+- `tests/` — comprobaciones automáticas.
