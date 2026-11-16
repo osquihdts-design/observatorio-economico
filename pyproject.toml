@@ -1,0 +1,6 @@
+[project]
+name = "panel-economico"
+version = "0.1.0"
+description = "Panel de datos económicos (Eurostat y BCE) hecho solo con Python estándar."
+requires-python = ">=3.12"
+dependencies = []

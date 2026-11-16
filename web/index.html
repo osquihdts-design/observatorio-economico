@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Observatorio económico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <h1>Observatorio económico</h1>
+        <p>Datos oficiales de Eurostat y del Banco Central Europeo, actualizados solos.</p>
+      </div>
+      <div class="top-actions">
+        <span id="updated" class="muted"></span>
+        <button id="btn-refresh" class="btn">Actualizar datos</button>
+      </div>
+    </header>
+
+    <div id="alert" class="alert" hidden></div>
+
+    <section class="kpis" id="kpis" aria-label="Últimos datos de España"></section>
+
+    <section class="controls">
+      <div class="control">
+        <span class="control-label">Países</span>
+        <div class="chips" id="countries"></div>
+      </div>
+      <div class="control">
+        <label class="control-label" for="since">Desde</label>
+        <select id="since"></select>
+      </div>
+    </section>
+
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+
+    <main>
+      <section class="card" id="view-chart">
+        <div class="card-head">
+          <div>
+            <h2 id="chart-title"></h2>
+            <p id="chart-unit" class="muted"></p>
+          </div>
+          <div class="card-actions">
+            <button class="btn ghost" id="btn-csv">Descargar para Excel</button>
+            <button class="btn ghost" id="btn-png">Guardar imagen</button>
+          </div>
+        </div>
+        <div id="chart" class="chart"></div>
+        <p id="missing" class="muted small" hidden></p>
+        <div class="explain">
+          <p id="chart-explain"></p>
+          <p class="muted small">Fuente: <a id="chart-source" target="_blank" rel="noopener"></a></p>
+        </div>
+      </section>
+
+      <section class="card" id="view-analysis" hidden>
+        <div class="card-head">
+          <div>
+            <h2>Análisis: ¿se mueven juntas?</h2>
+            <p class="muted">Elige dos indicadores y un país. Se calcula una regresión lineal con datos trimestrales.</p>
+          </div>
+        </div>
+        <div class="presets" id="presets"></div>
+        <div class="analysis-controls">
+          <label>País<select id="a-country"></select></label>
+          <label>Variable que explica (X)<select id="a-x"></select></label>
+          <label>Variable explicada (Y)<select id="a-y"></select></label>
+          <label>Retardo de X<select id="a-lag"></select></label>
+        </div>
+        <div class="stats" id="a-stats"></div>
+        <p class="analysis-text" id="a-text"></p>
+        <div class="analysis-charts">
+          <div><h3 id="a-scatter-title">Relación</h3><div id="a-scatter" class="chart small-chart"></div></div>
+          <div><h3>Evolución en el tiempo</h3><div id="a-time" class="chart small-chart"></div></div>
+        </div>
+        <p class="muted small" id="a-warning"></p>
+      </section>
+    </main>
+
+    <footer class="muted small">
+      Hecho con Python y Plotly · Datos: Eurostat y Banco Central Europeo. Los datos se guardan 12 horas en la carpeta <code>.cache</code>.
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
