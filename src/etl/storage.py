@@ -113,6 +113,27 @@ def resumen(ruta: Path = config.BASE_DATOS) -> list[dict]:
         return [dict(f) for f in con.execute(consulta)]
 
 
+def ultimos_valores(cuantos: int = 2, ruta: Path = config.BASE_DATOS) -> list[dict]:
+    """Los `cuantos` datos más recientes de cada indicador y país (para tarjetas y tablas resumen)."""
+    consulta = """
+        SELECT * FROM (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY indicator_id, country_code ORDER BY date DESC) AS orden
+            FROM observaciones
+        ) WHERE orden <= ? ORDER BY source, indicator_id, country_code, orden
+    """
+    with closing(conectar(ruta)) as con:
+        return [dict(f) for f in con.execute(consulta, (cuantos,))]
+
+
+def disponibles(ruta: Path = config.BASE_DATOS) -> dict[str, list[str]]:
+    """Qué países tiene cada indicador: {indicador: [países]}."""
+    with closing(conectar(ruta)) as con:
+        resultado: dict[str, list[str]] = {}
+        for f in con.execute("SELECT DISTINCT indicator_id, country_code FROM observaciones ORDER BY 1, 2"):
+            resultado.setdefault(f["indicator_id"], []).append(f["country_code"])
+        return resultado
+
+
 def estado_fuentes(ruta: Path = config.BASE_DATOS, horas_fresco: float = 24) -> dict[str, dict]:
     """Semáforo por fuente a partir de su última sincronización.
 

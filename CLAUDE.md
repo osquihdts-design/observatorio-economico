@@ -12,12 +12,10 @@ Panel de datos económicos para un estudiante de Economía (su primer proyecto e
 - Python: `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` (instalado con winget, firmado).
 
 ## Técnica
-- `python servidor.py` → http://localhost:8501 (o doble clic en `abrir-panel.bat`).
-- `datos.py`: Eurostat (JSON-stat) y BCE (CSV). Formato interno: `{país: [[fecha "AAAA-MM-DD", valor], ...]}`. Caché en `.cache/` 12 h; sin internet usa la caché.
-  - Inflación: en 2026 Eurostat migró el IPCA a ECOICOP 2 → se unen `prc_hicp_manr` (hasta 2025, `coicop=CP00`) y `prc_hicp_minr` (desde 2026, `coicop18=TOTAL`).
-- `analisis.py`: todo a medias trimestrales; regresión con `statistics.linear_regression`.
+- `python servidor.py` → http://localhost:8501 (o doble clic en `abrir-panel.bat`). Si la base está vacía, descarga los datos al arrancar.
+- Datos: `src/` (conectores → SQLite en `data/processed/`). Inflación Eurostat: en 2026 se migró a ECOICOP 2 → se unen `prc_hicp_manr` (hasta 2025) y `prc_hicp_minr` (desde 2026).
 - `web/`: HTML + JS sin compilar; gráficos con Plotly 2.35.2 desde jsDelivr.
-- Prueba los cambios en el navegador. Si cambias Python, reinicia el servidor.
+- Prueba los cambios en el navegador. Si cambias Python, reinicia el servidor. `python -m unittest` debe pasar.
 
 ## Plan ampliado (especificación del usuario, por fases)
 Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con el esquema común en vez de DataFrames, servidor propio + Plotly en vez de Streamlit, econometría programada a mano en vez de statsmodels.
@@ -29,9 +27,11 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
    - HAC Newey-West con núcleo de Bartlett, L = ⌊4(n/100)^(2/9)⌋ y corrección n/(n−k) (como statsmodels). F de Wald con la matriz elegida.
    - ADF con constante, retardos por AIC sobre muestra común y reestimación (como statsmodels); p-valor MacKinnon 1994, críticos MacKinnon 2010.
    - `dataset.preparar`: si alguna variable es trimestral, todo pasa a medias trimestrales antes de transformar.
-3. Fase 3: interfaz multipágina (portada ejecutiva, inflación, mercado laboral, política monetaria, vivienda y salarios, laboratorio econométrico) leyendo de la base SQLite.
-4. Fase 4: tests (unittest), GitHub Actions y README.
-- La web actual (`servidor.py` + `datos.py`) sigue funcionando aparte hasta la fase 3.
+3. ✅ Fase 3: `servidor.py` (API sobre SQLite + actualización en segundo plano con progreso) y `web/` (SPA con módulos ES sin compilar: `js/app.js`, `js/paginas/*.js`, `js/academico.js`, `js/graficos.js`).
+   - API GET: catalogo, series, estado, resumen · POST: actualizar, lab/hp, lab/ccf, lab/ols, lab/dispersion, lab/exportar (xlsx).
+   - Colores fijos por país (ES #C8102E, EA #003399…). Índices INE se rebasan a 2015 = 100 en el cliente (la API del INE no da la base).
+   - El panel del navegador de Claude suele estar oculto: verificar con JS (datos, errores) además de capturas.
+4. Fase 4: más tests (API, conectores con respuestas grabadas), GitHub Actions y README.
 
 ## Ideas siguientes
 - Más indicadores (salarios, deuda pública, prima de riesgo, IPC por grupos, datos del INE por comunidades).

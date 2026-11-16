@@ -1,78 +1,72 @@
 # Observatorio económico
 
-Panel con datos económicos oficiales que se actualizan solos: inflación, paro, paro
-juvenil, crecimiento del PIB, precio de la vivienda, euríbor y tipo del BCE, para
-España y otros 12 países y zonas de Europa. Incluye un análisis de regresión para
-ver si dos indicadores se mueven juntos.
+Panel de datos económicos oficiales de **España frente a Europa**, con un laboratorio
+econométrico para trabajos y el TFG. Datos del **INE**, **Eurostat** y el **Banco Central
+Europeo**, actualizados desde sus APIs públicas.
 
-Hecho **solo con Python estándar**: no hay que instalar ninguna librería.
+Hecho **solo con Python estándar** (sin numpy, pandas ni Streamlit, que este Windows bloquea)
+y gráficos interactivos con Plotly.
 
 ## Cómo abrirlo
 
 - **Doble clic en `abrir-panel.bat`.** Se abre solo en el navegador.
 - O desde una terminal en esta carpeta: `python servidor.py`
 
-Se ve en http://localhost:8501. Para cerrarlo, cierra la ventana negra (o `Ctrl+C`).
+Se ve en http://localhost:8501. La primera vez descarga los datos (unos 10 segundos).
+Para cerrarlo, cierra la ventana negra (o `Ctrl+C`).
 
 ## Qué hay
 
-- **Tarjetas de arriba:** el último dato de España (y de la zona euro en los tipos de interés), con la flecha del cambio respecto al dato anterior. Clic en una tarjeta para ver su gráfico.
-- **Pestañas:** un gráfico por indicador. Elige los países y desde qué año.
-  - «Descargar para Excel» guarda la tabla (se abre bien en Excel en español).
-  - «Guardar imagen» guarda el gráfico en PNG, listo para un trabajo o presentación.
-- **Análisis:** elige dos indicadores y un país, y calcula una regresión lineal con datos trimestrales: correlación (r), R², pendiente y una explicación en palabras. Hay ejemplos de clase listos: curva de Phillips, ley de Okun, euríbor y vivienda, política monetaria.
-  - El «retardo» compara una variable con la otra unos trimestres después (los efectos económicos tardan).
+**Barra lateral**
+- Periodo: 1, 3, 5 o 10 años, máximo o fechas a medida. Se aplica a todas las páginas.
+- Países: España y zona euro siempre; añade Alemania, Francia, Italia o Portugal.
+- Estado de las fuentes con semáforo (verde, ámbar o rojo) y «Actualizar datos ahora» con barra de progreso.
+- **Modo explicación académica:** bajo cada gráfico, cómo se calcula, su fórmula y cómo interpretarlo.
 
-## De dónde salen los datos
+**Páginas**
+1. **Portada:** cinco tarjetas con el último dato (color según si el cambio es bueno o malo), minigráfico
+   y referencia de la zona euro; divergencia España–zona euro en inflación y paro; tabla con todos los indicadores.
+2. **Inflación y precios:** IPC general y subyacente con el objetivo del BCE, comparativa europea (IAPC)
+   y calculadora de poder adquisitivo entre dos fechas.
+3. **Mercado laboral:** paro general y juvenil por países y curva de Phillips con una recta por subperiodo
+   (antes de la COVID, COVID, ciclo restrictivo del BCE y bajadas de tipos).
+4. **Política monetaria:** corredor de tipos del BCE con el euríbor, transmisión a las hipotecas
+   (España frente a zona euro) y crecimiento de M3.
+5. **Vivienda y salarios:** índices de precio de vivienda (INE y Eurostat, base 2015) e índice de esfuerzo
+   vivienda/salarios.
+6. **Laboratorio econométrico:** regresión MCO con varias variables y transformaciones, errores Newey-West,
+   test ADF con aviso de regresión espuria, gráfico de observados/predichos y residuos, citas APA y
+   **exportación a Excel para el TFG**; filtro Hodrick-Prescott; correlación cruzada con retardos.
 
-- **Eurostat** (inflación IPCA, paro, PIB, vivienda): https://ec.europa.eu/eurostat
-- **Banco Central Europeo** (euríbor, tipo de depósito): https://data.ecb.europa.eu
+Cada gráfico tiene botones para descargar sus datos (CSV para Excel) y guardarlo como imagen.
 
-Se descargan la primera vez y se guardan 12 horas en la carpeta `.cache`. Sin internet,
-el panel usa los últimos datos guardados. «Actualizar datos» fuerza una descarga nueva.
-
-## Base de datos del observatorio (fase 1 del plan ampliado)
-
-Descarga 23 indicadores de **INE, Eurostat y BCE** a una base de datos local, con un
-esquema común para todas las fuentes (fecha, indicador, país, valor, unidad, frecuencia,
-fuente, código de serie, estado del dato y fecha de actualización).
+## Actualizar los datos sin abrir la web
 
 ```
 python scripts/actualizar_datos.py
 ```
 
-Tarda unos 10 segundos. Guarda todo en `data/processed/observatorio.sqlite`, deja una copia
-para Excel en `data/processed/observaciones.csv` y muestra un semáforo por fuente.
+Guarda todo en `data/processed/observatorio.sqlite` (más una copia `observaciones.csv`).
 
-- **INE:** IPC general y subyacente, paro EPA (total y menores de 25), precio de la vivienda
-  (general, nueva y segunda mano) y coste salarial (ETCL).
-- **Eurostat** (España, Alemania, Francia, Italia, Portugal y zona euro): inflación IAPC
-  general y subyacente, paro y paro juvenil, precio de la vivienda y PIB.
-- **BCE:** los tres tipos oficiales, euríbor a 12 meses, tipo de las nuevas hipotecas
-  (España y zona euro) y crecimiento de M3.
+## Indicadores
+
+- **INE:** IPC general (índice y variación) y subyacente, paro EPA (total y menores de 25),
+  precio de la vivienda (general, nueva y segunda mano) y coste salarial (ETCL).
+- **Eurostat** (España, Alemania, Francia, Italia, Portugal y zona euro): inflación IAPC general y
+  subyacente, paro y paro juvenil, precio de la vivienda y PIB.
+- **BCE:** tipos oficiales (depósito, refinanciación y marginal), euríbor a 12 meses, tipo de las
+  nuevas hipotecas (España y zona euro) y crecimiento de M3.
 
 Los códigos exactos de cada serie están en `src/config.py`.
 
-## Laboratorio econométrico (fase 2)
-
-Todo programado en Python estándar y comprobado con resultados publicados (ver «Tests»).
-
-- **Transformaciones:** niveles, primeras diferencias (Δ), logaritmos (ln), Δln y tasas interanuales.
-- **Filtro Hodrick-Prescott:** tendencia y ciclo (λ = 14400 mensual, 1600 trimestral, ajustable).
-- **Test de Dickey-Fuller aumentado:** estadístico, p-valor de MacKinnon, valores críticos y aviso
-  si la serie no es estacionaria (riesgo de regresión espuria).
-- **Correlación cruzada con retardos (lead-lag)** con bandas de significación al 95 %.
-- **Regresión MCO** con una o varias variables: coeficientes, errores estándar clásicos o robustos
-  HAC de Newey-West, t, p-valores, intervalos de confianza, R², R² ajustado, F, AIC, BIC y Durbin-Watson.
-- **Exportación a Excel** con las pestañas `Datos_Limpios`, `Metadatos_Fuentes` (con cita APA 7.ª de
-  cada serie), `Resultados_Regresion` y `Estadisticos_Descriptivos`.
-
-Ejemplo con datos reales (curva de Phillips en España, ADF, filtro HP, retardos del tipo del BCE
-y Excel final en `data/processed/ejemplo_curva_phillips.xlsx`):
+## Ejemplo de laboratorio desde la terminal
 
 ```
 python scripts/ejemplo_laboratorio.py
 ```
+
+Curva de Phillips en España, test ADF, filtro HP, retardos del tipo del BCE y Excel final en
+`data/processed/ejemplo_curva_phillips.xlsx`.
 
 ## Tests
 
@@ -80,23 +74,20 @@ python scripts/ejemplo_laboratorio.py
 python -m unittest -v
 ```
 
-Comprueban, entre otras cosas, que la regresión reproduce los resultados publicados del cuarteto
-de Anscombe, que los p-valores coinciden con las tablas de la t de Student y la F, que el p-valor
-del ADF da 1 %, 5 % y 10 % en los valores críticos de MacKinnon, y que el Excel es un archivo válido.
+Comprueban que la regresión reproduce los resultados publicados del cuarteto de Anscombe, que los
+p-valores coinciden con las tablas de la t y la F, que el p-valor del ADF da 1 %, 5 % y 10 % en los
+valores críticos de MacKinnon, las propiedades del filtro HP y que el Excel es un archivo válido.
 
 ## Archivos
 
-- `datos.py` — descarga y guarda los datos (cada indicador está explicado ahí).
-- `analisis.py` — estadística: medias trimestrales y regresión lineal.
-- `servidor.py` — el servidor que une los datos con la página web.
-- `web/` — la página: `index.html`, `style.css` y `app.js` (gráficos con Plotly).
+- `servidor.py` — servidor web y API (`/api/...`).
+- `web/` — la página: `index.html`, `css/style.css` y `js/` (`app.js` estructura, `graficos.js`,
+  `academico.js` textos del modo académico, y una página por archivo en `js/paginas/`).
 - `src/config.py` — catálogo de indicadores con sus códigos oficiales.
-- `src/connectors/` — un conector por fuente (`ine_client.py`, `eurostat_client.py`, `ecb_client.py`) y las piezas comunes (`base.py`).
-- `src/etl/storage.py` — base de datos SQLite y exportación a CSV.
-- `src/etl/pipeline.py` — descarga todo en paralelo y registra el estado de cada fuente.
-- `scripts/actualizar_datos.py` — actualiza los datos y enseña un resumen.
-- `src/econometrics/` — `algebra.py` (matrices), `distribuciones.py` (normal, t, F), `time_series.py`
-  (transformaciones, filtro HP, ADF), `regression.py` (MCO y Newey-West), `correlations.py`, `dataset.py`.
-- `src/reporting/` — `xlsx.py` (crea archivos Excel) y `exporter.py` (informe para el TFG y citas APA).
-- `scripts/ejemplo_laboratorio.py` — ejemplo completo con datos reales.
+- `src/connectors/` — un conector por fuente (INE, Eurostat, BCE) y piezas comunes.
+- `src/etl/` — base de datos SQLite (`storage.py`) y descarga en paralelo (`pipeline.py`).
+- `src/econometrics/` — matrices, distribuciones, series temporales (transformaciones, HP, ADF),
+  regresión (MCO y Newey-West), correlaciones y preparación de datos.
+- `src/reporting/` — creación de Excel y citas APA.
+- `scripts/` — actualizar datos y ejemplo de laboratorio.
 - `tests/` — comprobaciones automáticas.
