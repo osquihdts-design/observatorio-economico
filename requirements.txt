@@ -1,0 +1,2 @@
+# Este proyecto no necesita librerías externas: solo Python 3.12 o superior.
+# (En este ordenador Smart App Control bloquea librerías compiladas como numpy o pandas.)
