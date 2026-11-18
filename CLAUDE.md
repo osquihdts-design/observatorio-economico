@@ -36,6 +36,11 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 
 5. ✅ Diseño revisado con capturas reales (Playwright) y página «Finanzas públicas» (`web/js/paginas/finanzas.js`): prima de riesgo (bono 10 años `irt_lt_mcby_m` frente a DE, en pb), deuda (`gov_10q_ggdebt`) y saldo público (`gov_10q_ggnfa`, `s_adj=SCA`: SA solo existe para Francia). 26 indicadores, 52 tests.
 
+6. ✅ Rediseño futurista: tema oscuro por defecto (`data-tema`), `web/js/efectos.js` (partículas, foco e inclinación de tarjetas, apariciones, contadores, avisos, transiciones), `web/js/paleta.js` (Ctrl+K y atajos), visor a pantalla completa, ticker y reloj. Página `mapa.js` (coropletas UE-27 animadas + carrera de barras) y portada con radar de posición europea.
+   - Eurostat descarga los 27 países (`config.PAISES_UE`, Grecia = `EL`); `config.NOMBRES` da el nombre de cualquier código. `PAISES` sigue siendo la lista corta de la barra lateral.
+   - Colores de Plotly según el tema con `graficos.tono()`: las páginas usan los colores institucionales y se traducen solos en oscuro.
+   - Con Playwright, las tarjetas `.revelable` solo aparecen al entrar en pantalla: para capturas de página completa, añade antes la clase `visible`.
+
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
 - GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC, datos como artifact). Acciones en v7 (Node 24).

@@ -38,7 +38,7 @@ def descargar_indicador(ind: dict, desde: str = config.FECHA_INICIO) -> list[Obs
         observaciones += [
             Observacion(
                 date=fecha, indicator_id=ind["id"], indicator_name=ind["nombre"],
-                country_code=pais, country_name=config.PAISES[pais], value=valor, unit=ind["unidad"],
+                country_code=pais, country_name=config.NOMBRES[pais], value=valor, unit=ind["unidad"],
                 frequency=ind["frecuencia"], source="BCE", series_code=clave, status=None, last_updated=momento,
             )
             for fecha, valor in por_mes.items()

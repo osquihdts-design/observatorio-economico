@@ -242,7 +242,7 @@ export default {
   titulo: 'Laboratorio econométrico',
   async render(nodo, ctx) {
     nodo.className = 'rejilla';
-    nodo.innerHTML = `<header class="cabecera"><h1>Laboratorio econométrico</h1>
+    nodo.innerHTML = `<header class="cabecera"><span class="etiqueta">MCO · Newey-West · ADF · Hodrick-Prescott</span><h1>Laboratorio <span class="degradado">econométrico</span></h1>
       <p>Herramientas para trabajos y el TFG: descomposición de series, correlaciones con retardos y regresiones con diagnóstico automático.
       Usa el periodo elegido en la barra lateral. Todos los cálculos están programados en Python y comprobados con resultados de manual.</p></header>`;
     const secciones = [seccionOLS(ctx), seccionHP(ctx), seccionCCF(ctx)];

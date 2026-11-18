@@ -69,7 +69,7 @@ def _desde(fecha: str, frecuencia: str) -> str:
 
 
 def descargar_indicador(ind: dict, desde: str = config.FECHA_INICIO) -> list[Observacion]:
-    paises = [p for p in config.PAISES if p != "EA"]
+    paises = list(config.PAISES_UE)
     puntos: dict[tuple[str, date], tuple[float, str | None, str]] = {}  # (país, fecha) → (valor, estado, tabla)
     actualizaciones = []
 
@@ -101,7 +101,7 @@ def descargar_indicador(ind: dict, desde: str = config.FECHA_INICIO) -> list[Obs
     return [
         Observacion(
             date=fecha, indicator_id=ind["id"], indicator_name=ind["nombre"],
-            country_code=pais, country_name=config.PAISES[pais], value=valor, unit=ind["unidad"],
+            country_code=pais, country_name=config.NOMBRES[pais], value=valor, unit=ind["unidad"],
             frequency=ind["frecuencia"], source="EUROSTAT", series_code=tabla, status=estado, last_updated=momento,
         )
         for (pais, fecha), (valor, estado, tabla) in sorted(puntos.items())

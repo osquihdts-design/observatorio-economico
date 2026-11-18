@@ -1,9 +1,33 @@
-// Ayudas para gráficos (Plotly), formatos en español y tarjetas con descarga de datos.
+// Ayudas para gráficos (Plotly): colores según el tema, líneas de neón, cruz de datos,
+// transiciones suaves, «dibujado» al aparecer, tarjetas con descarga y visor a pantalla completa.
 import { guardarBlob } from './api.js';
 import { explicacion } from './academico.js';
+import { sinMovimiento } from './efectos.js';
 
-export const COLORES = { ES: '#C8102E', EA: '#003399', DE: '#2E3440', FR: '#4C78A8', IT: '#2A9D8F', PT: '#E9C46A' };
+const oscuro = () => document.documentElement.dataset.tema !== 'claro';
+
+// Colores por país. Se rellenan según el tema (ver aplicarTema).
+const PAISES_CLARO = { ES: '#C8102E', EA: '#003399', DE: '#2E3440', FR: '#4C78A8', IT: '#2A9D8F', PT: '#E9C46A' };
+const PAISES_OSCURO = { ES: '#ff3b5c', EA: '#5b8cff', DE: '#cbd5e1', FR: '#38bdf8', IT: '#2dd4bf', PT: '#fbbf24' };
+export const COLORES = { ...PAISES_OSCURO };
 export const PALETA = ['#003399', '#C8102E', '#2A9D8F', '#E9A23B', '#4C78A8', '#6C757D', '#8E44AD'];
+
+// En el tema oscuro, los colores pensados para fondo blanco se cambian por versiones luminosas.
+const EQUIVALENTES_OSCURO = {
+  '#C8102E': '#ff3b5c', '#003399': '#5b8cff', '#2E3440': '#cbd5e1', '#1f2937': '#cbd5e1', '#1b1f24': '#e8eef8',
+  '#4C78A8': '#38bdf8', '#2A9D8F': '#2dd4bf', '#E9A23B': '#fbbf24', '#E9C46A': '#fbbf24', '#6C757D': '#94a3b8',
+  '#9AA0A6': '#94a3b8', '#C5CBD3': '#334155', '#8E44AD': '#c084fc',
+  'rgba(0,51,153,0.07)': 'rgba(91,140,255,0.10)', 'rgba(0,51,153,0.08)': 'rgba(91,140,255,0.12)',
+  'rgba(0,51,153,0.65)': 'rgba(91,140,255,0.75)', 'rgba(0,51,153,0.7)': 'rgba(91,140,255,0.75)',
+  'rgba(200,16,46,0.7)': 'rgba(255,59,92,0.8)', 'rgba(200,16,46,0.25)': 'rgba(255,59,92,0.3)',
+  'rgba(26,127,75,0.25)': 'rgba(52,211,153,0.28)',
+};
+export const tono = (c) => (oscuro() && typeof c === 'string' && EQUIVALENTES_OSCURO[c]) || c;
+
+/** Ajusta los colores de los países al tema actual. */
+export function aplicarTema() {
+  Object.assign(COLORES, oscuro() ? PAISES_OSCURO : PAISES_CLARO);
+}
 
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
@@ -15,19 +39,25 @@ export function fechaTexto(f, frecuencia = 'M') {
   return frecuencia === 'Q' ? `T${Math.floor((m - 1) / 3) + 1} ${a}` : `${MESES[m - 1]} ${a}`;
 }
 
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
 export function layout(extra = {}) {
-  const ejes = { gridcolor: '#E9ECEF', linecolor: '#CED4DA', zerolinecolor: '#ADB5BD', tickfont: { size: 12, color: '#5f6873' } };
+  const ink = css('--ink'), muted = css('--muted'), line = css('--line'), line2 = css('--line-2'), acento = css('--accent');
+  const ejes = {
+    gridcolor: line, linecolor: line2, zerolinecolor: line2, tickfont: { size: 11.5, color: muted, family: 'JetBrains Mono, monospace' },
+    showspikes: true, spikemode: 'across', spikesnap: 'cursor', spikethickness: 1, spikedash: 'dot', spikecolor: acento,
+  };
   return {
-    margin: { l: 52, r: 18, t: 8, b: 36 },
+    margin: { l: 54, r: 18, t: 8, b: 36 },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Inter, system-ui, sans-serif', size: 13, color: '#1b1f24' },
+    font: { family: 'Inter, system-ui, sans-serif', size: 13, color: ink },
     hovermode: 'x unified',
-    hoverlabel: { bgcolor: '#fff', bordercolor: '#CED4DA', font: { size: 12.5 } },
-    legend: { orientation: 'h', y: -0.14, x: 0, font: { size: 12.5 } },
+    hoverlabel: { bgcolor: css('--panel-solido'), bordercolor: acento, font: { size: 12.5, color: ink, family: 'Inter, sans-serif' } },
+    legend: { orientation: 'h', y: -0.15, x: 0, font: { size: 12, color: muted } },
     separators: ',.',
     xaxis: { ...ejes },
-    yaxis: { ...ejes },
+    yaxis: { ...ejes, showspikes: false },
     ...extra,
   };
 }
@@ -39,13 +69,48 @@ export const CONFIG = {
   toImageButtonOptions: { format: 'png', scale: 2 },
 };
 
+/** Cambia los colores al tema y añade un halo de neón a las líneas destacadas (tema oscuro). */
+function prepararTrazas(trazas) {
+  const salida = [];
+  for (const t of trazas) {
+    const copia = { ...t };
+    if (t.line) copia.line = { ...t.line, color: tono(t.line.color) };
+    if (t.marker) {
+      copia.marker = { ...t.marker };
+      copia.marker.color = Array.isArray(t.marker.color) ? t.marker.color.map(tono) : tono(t.marker.color);
+    }
+    if (t.fillcolor) copia.fillcolor = tono(t.fillcolor);
+    const destacada = t.type === 'scatter' && (t.mode || '').includes('lines') && (t.line?.width ?? 2) >= 2.6 && !t.fill;
+    if (destacada && oscuro()) {
+      const grupo = t.legendgroup || t.name;
+      copia.legendgroup = grupo;
+      salida.push({ ...copia, line: { ...copia.line, width: (copia.line.width || 2.6) * 4, dash: 'solid' }, opacity: 0.16,
+        hoverinfo: 'skip', hovertemplate: undefined, showlegend: false, name: `${t.name} (halo)`, legendgroup: grupo });
+    }
+    salida.push(copia);
+  }
+  return salida;
+}
+
 export function dibujar(div, trazas, extra = {}) {
   const base = layout();
-  return Plotly.react(div, trazas, {
+  const yaDibujado = Array.isArray(div.data) && div.data.length > 0;
+  const capa = {
     ...base, ...extra,
     xaxis: { ...base.xaxis, ...(extra.xaxis || {}) },
     yaxis: { ...base.yaxis, ...(extra.yaxis || {}) },
-  }, CONFIG);
+  };
+  for (const clave of Object.keys(extra)) {
+    if (/^yaxis\d$/.test(clave)) capa[clave] = { ...base.yaxis, ...extra[clave] };
+  }
+  if (capa.shapes) capa.shapes = capa.shapes.map((s) => ({ ...s, line: { ...s.line, color: tono(s.line?.color) } }));
+  if (yaDibujado && !sinMovimiento) capa.transition = { duration: 550, easing: 'cubic-in-out' };
+  const promesa = Plotly.react(div, prepararTrazas(trazas), capa, CONFIG);
+  if (!yaDibujado && !sinMovimiento) {
+    div.classList.add('revelar');
+    setTimeout(() => div.classList.remove('revelar'), 1700);
+  }
+  return promesa;
 }
 
 /** Traza de línea a partir de [[fecha, valor], …] */
@@ -65,20 +130,26 @@ export function linea(nombre, puntos, color, opciones = {}) {
 /** Línea horizontal de referencia (por ejemplo, el objetivo de inflación del 2 %).
  *  Sin `texto` no se pone etiqueta (útil cuando las líneas pasan justo por ahí y el subtítulo ya lo explica). */
 export function referencia(y, texto = '', color = '#6C757D') {
+  const c = tono(color);
   return {
-    shapes: [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: y, y1: y, line: { dash: 'dot', color, width: 1.5 } }],
-    annotations: texto ? [{ xref: 'paper', x: 1, y, text: texto, showarrow: false, xanchor: 'right', yanchor: 'bottom', bgcolor: 'rgba(255,255,255,0.85)', font: { size: 11.5, color } }] : [],
+    shapes: [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: y, y1: y, line: { dash: 'dot', color: c, width: 1.5 } }],
+    annotations: texto ? [{ xref: 'paper', x: 1, y, text: texto, showarrow: false, xanchor: 'right', yanchor: 'bottom',
+      bgcolor: css('--panel-solido'), borderpad: 3, font: { size: 11.5, color: c } }] : [],
   };
 }
 
-/** Minigráfico SVG para las tarjetas. */
+/** Minigráfico SVG para las tarjetas (con área degradada). */
 export function sparkline(valores, color) {
   if (valores.length < 2) return '';
   const min = Math.min(...valores), max = Math.max(...valores);
   const rango = max - min || 1;
-  const puntos = valores.map((v, i) => `${(i / (valores.length - 1)) * 100},${30 - ((v - min) / rango) * 26 - 2}`).join(' ');
-  return `<svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
-    <polyline points="${puntos}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke"/></svg>`;
+  const pts = valores.map((v, i) => [(i / (valores.length - 1)) * 100, 32 - ((v - min) / rango) * 28 - 2]);
+  const linea = pts.map((p) => p.join(',')).join(' ');
+  const id = `g${Math.random().toString(36).slice(2, 8)}`;
+  return `<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true" style="color:${color}">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <polygon class="area" points="0,34 ${linea} 100,34" fill="url(#${id})"/>
+    <polyline points="${linea}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke" pathLength="400"/></svg>`;
 }
 
 export function descargarCSV(nombre, cabeceras, filas) {
@@ -95,25 +166,58 @@ export function aTabla(seriesPorNombre) {
   return { cabeceras: ['Fecha', ...nombres], filas: fechas.map((f) => [f, ...mapas.map((m) => m.get(f) ?? '')]) };
 }
 
-/** Tarjeta con título, botones de «Datos» (CSV) e «Imagen» (PNG), gráfico y explicación académica. */
+// ---------------------------------------------------------------- Visor a pantalla completa
+let anteriorFoco = null;
+
+export function abrirVisor(titulo, grafico) {
+  if (!grafico?.data?.length) return;
+  const capa = document.getElementById('visor');
+  const destino = document.getElementById('visor-grafico');
+  document.getElementById('visor-titulo').textContent = titulo;
+  anteriorFoco = document.activeElement;
+  capa.hidden = false;
+  const lay = JSON.parse(JSON.stringify(grafico.layout));
+  delete lay.width; delete lay.height; delete lay.transition;
+  // Con fechas en el eje X, se añade la barra para moverse en el tiempo.
+  const conFechas = grafico.data.some((t) => typeof t.x?.[0] === 'string' && /^\d{4}-\d{2}/.test(t.x[0]));
+  if (conFechas && lay.xaxis) lay.xaxis.rangeslider = { visible: true, thickness: 0.07, bgcolor: 'rgba(0,0,0,0)', bordercolor: css('--line-2') };
+  lay.margin = { ...(lay.margin || {}), t: 10 };
+  Plotly.newPlot(destino, grafico.data, lay, { ...CONFIG, scrollZoom: true });
+  document.getElementById('visor-cerrar').focus();
+}
+
+export function cerrarVisor() {
+  const capa = document.getElementById('visor');
+  if (capa.hidden) return;
+  Plotly.purge(document.getElementById('visor-grafico'));
+  capa.hidden = true;
+  anteriorFoco?.focus?.();
+}
+
+/** Tarjeta con título, botones (ampliar, datos CSV, imagen PNG), gráfico y explicación académica. */
 export function tarjeta({ titulo, sub = '', fuente = '', clave = null, alto = '' }) {
   const el = document.createElement('section');
   el.className = 'card';
   el.innerHTML = `
     <div class="card-head">
       <div><h2>${titulo}</h2>${sub ? `<p class="sub">${sub}</p>` : ''}</div>
-      <div class="acciones"><button data-csv title="Descargar los datos para Excel">Datos</button><button data-png title="Guardar el gráfico como imagen">Imagen</button></div>
+      <div class="acciones">
+        <button data-ampliar title="Ver a pantalla completa, con zoom y barra de tiempo">⤢ Ampliar</button>
+        <button data-csv title="Descargar los datos para Excel">Datos</button>
+        <button data-png title="Guardar el gráfico como imagen">Imagen</button>
+      </div>
     </div>
     <div class="grafico ${alto}"></div>
     ${fuente ? `<p class="fuente-nota">Fuente: ${fuente}</p>` : ''}
     ${clave ? explicacion(clave) : ''}`;
   const grafico = el.querySelector('.grafico');
   let datos = null;
+  el.querySelector('[data-ampliar]').addEventListener('click', () => abrirVisor(titulo, grafico));
   el.querySelector('[data-csv]').addEventListener('click', () => {
     if (datos) descargarCSV(`${titulo.toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi, '_')}.csv`, datos.cabeceras, datos.filas);
   });
   el.querySelector('[data-png]').addEventListener('click', () => {
-    Plotly.downloadImage(grafico, { format: 'png', width: 1400, height: 700, filename: titulo.toLowerCase().replace(/\s+/g, '_') });
+    Plotly.downloadImage(grafico, { format: 'png', width: 1600, height: 800, filename: titulo.toLowerCase().replace(/\s+/g, '_') });
   });
   return { el, grafico, setDatos: (d) => { datos = d; } };
 }

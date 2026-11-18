@@ -1,0 +1,317 @@
+// Mapa de Europa animado: un indicador para los 27 países de la UE, con reproductor (play, línea de tiempo,
+// velocidad), «carrera de barras» sincronizada y la historia del país que se pulse.
+import { series } from '../api.js';
+import { COLORES, CONFIG, descargarCSV, dibujar, fechaTexto, fmt, layout, linea, tarjeta } from '../graficos.js';
+import { avisar, sinMovimiento } from '../efectos.js';
+
+// Eurostat usa códigos de 2 letras (Grecia = EL); el mapa de Plotly necesita ISO de 3 letras.
+const ISO3 = {
+  AT: 'AUT', BE: 'BEL', BG: 'BGR', CY: 'CYP', CZ: 'CZE', DE: 'DEU', DK: 'DNK', EE: 'EST', EL: 'GRC', ES: 'ESP',
+  FI: 'FIN', FR: 'FRA', HR: 'HRV', HU: 'HUN', IE: 'IRL', IT: 'ITA', LT: 'LTU', LU: 'LUX', LV: 'LVA', MT: 'MLT',
+  NL: 'NLD', PL: 'POL', PT: 'PRT', RO: 'ROU', SE: 'SWE', SI: 'SVN', SK: 'SVK',
+};
+const UE = Object.keys(ISO3);
+const DE_ISO3 = Object.fromEntries(Object.entries(ISO3).map(([a, b]) => [b, a]));
+
+// Escala de color «de frío a caliente». En los indicadores donde subir es bueno (PIB, saldo) se invierte.
+const ESCALA = ['#1e3a8a', '#0891b2', '#22d3ee', '#a3e635', '#facc15', '#f97316', '#e11d48'];
+const BUENO_SI_SUBE = new Set(['pib_var', 'saldo_publico']);
+const VELOCIDADES = { '0,5×': 900, '1×': 420, '2×': 200, '4×': 90 };
+
+let limpiar = null; // se llama al salir de la página: para la animación y quita los atajos
+
+function percentil(ordenados, p) {
+  if (!ordenados.length) return 0;
+  const i = (ordenados.length - 1) * p;
+  const a = Math.floor(i), b = Math.ceil(i);
+  return ordenados[a] + (ordenados[b] - ordenados[a]) * (i - a);
+}
+
+function hexARgb(h) { return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); }
+function colorEn(escala, t) {
+  const k = Math.max(0, Math.min(1, t)) * (escala.length - 1);
+  const i = Math.min(escala.length - 2, Math.floor(k));
+  const a = hexARgb(escala[i]), b = hexARgb(escala[i + 1]);
+  const f = k - i;
+  return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * f)).join(',')})`;
+}
+
+/** Para cada fecha, el último valor conocido de cada país (como mucho 12 periodos atrás, para no inventar). */
+function tablaPorFecha(datos, fechas) {
+  const tabla = fechas.map(() => ({}));
+  for (const [pais, puntos] of Object.entries(datos)) {
+    const m = new Map(puntos);
+    let ultimo = null, edad = 0;
+    fechas.forEach((f, i) => {
+      if (m.has(f)) { ultimo = m.get(f); edad = 0; } else edad += 1;
+      if (ultimo != null && edad <= 12) tabla[i][pais] = { v: ultimo, estimado: edad > 0 };
+    });
+  }
+  return tabla;
+}
+
+export default {
+  titulo: 'Mapa de Europa',
+  salir() { limpiar?.(); limpiar = null; },
+  async render(nodo, ctx) {
+    const europeos = ctx.catalogo.indicadores.filter((i) => i.paises.length > 20);
+    if (!europeos.length) {
+      nodo.innerHTML = '<div class="alerta">Todavía no hay datos de los 27 países. Pulsa «Actualizar datos ahora».</div>';
+      return;
+    }
+    const id = europeos.some((i) => i.id === ctx.parametro) ? ctx.parametro : (europeos.find((i) => i.id === 'paro') || europeos[0]).id;
+    const info = ctx.indicador(id);
+    const datos = (await series([id], { paises: [...UE, 'EA'], desde: '2000-01-01' }))[id] || {};
+    if (!ctx.vigente()) return;
+
+    const fechas = [...new Set(Object.values(datos).flatMap((s) => s.map((p) => p[0])))].sort();
+    const tabla = tablaPorFecha(datos, fechas);
+    const todos = UE.flatMap((p) => (datos[p] || []).map((x) => x[1])).sort((a, b) => a - b);
+    const zmin = percentil(todos, 0.02), zmax = percentil(todos, 0.98);
+    const escala = BUENO_SI_SUBE.has(id) ? [...ESCALA].reverse() : ESCALA;
+    const sufijo = info.unidad.startsWith('%') ? ' %' : ` ${info.unidad}`;
+    const dec = /bono|euribor/.test(id) ? 2 : 1;
+
+    // Por defecto, el último periodo en el que al menos 20 países tienen dato.
+    let indice = fechas.length - 1;
+    while (indice > 0 && UE.filter((p) => tabla[indice][p]).length < 20) indice -= 1;
+    let foco = 'ES';
+    let reproduciendo = false;
+    let reloj = null;
+    let pausa = VELOCIDADES['1×'];
+
+    nodo.innerHTML = `
+      <header class="cabecera"><span class="etiqueta">Unión Europea · 27 países</span>
+        <h1><span class="degradado">Mapa de Europa</span></h1>
+        <p>Elige un indicador y pulsa ▶ para ver cómo ha cambiado en cada país desde el año 2000. Pulsa un país del mapa
+        o de la clasificación para ver su historia. Atajos: <kbd>Espacio</kbd> reproducir · <kbd>←</kbd> <kbd>→</kbd> moverse en el tiempo.</p></header>
+      <section class="card">
+        <div class="mapa-controles">
+          <select data-indicador aria-label="Indicador">${europeos.map((i) => `<option value="${i.id}" ${i.id === id ? 'selected' : ''}>${i.nombre}</option>`).join('')}</select>
+          <span class="leyenda-mapa" data-resumen></span>
+        </div>
+        <div class="reproductor">
+          <button class="boton-play" data-play aria-label="Reproducir"></button>
+          <div class="fecha-grande" data-fecha></div>
+          <input class="linea-tiempo" type="range" min="0" max="${fechas.length - 1}" value="${indice}" aria-label="Fecha">
+          <div class="velocidad">${Object.keys(VELOCIDADES).map((v) => `<button data-vel="${v}" class="${v === '1×' ? 'on' : ''}">${v}</button>`).join('')}</div>
+        </div>
+        <div class="mapa-layout" style="margin-top:14px">
+          <div class="mapa" data-mapa></div>
+          <div><div class="carrera" data-carrera></div></div>
+        </div>
+        <p class="fuente-nota">Fuente: Eurostat (${info.nombre}). Colores fijos para todo el periodo, para que se puedan comparar los años.
+          ${BUENO_SI_SUBE.has(id) ? 'Azul = mejor (valores altos).' : 'Rojo = valores altos.'} Si un país aún no ha publicado el último dato, se muestra el anterior (en cursiva).</p>
+      </section>`;
+
+    const $ = (s) => nodo.querySelector(s);
+    const divMapa = $('[data-mapa]');
+    const carrera = $('[data-carrera]');
+    const deslizador = $('.linea-tiempo');
+    const botonPlay = $('[data-play]');
+
+    // Filas de la carrera de barras: se crean una vez y luego solo se mueven.
+    const filas = {};
+    for (const p of UE) {
+      const f = document.createElement('div');
+      f.className = `carrera-fila${p === 'ES' ? ' es' : ''}`;
+      f.dataset.pais = p;
+      f.innerHTML = `<span class="pos"></span><span class="nom">${ctx.nombrePais(p)}</span><span class="pista"><i class="barra-c"></i></span><span class="val"></span>`;
+      carrera.appendChild(f);
+      filas[p] = f;
+    }
+    const lo = Math.min(0, zmin), hi = Math.max(0, zmax);
+    const alto = 20.4;
+
+    function pintarCarrera(fila) {
+      const orden = UE.filter((p) => fila[p]).sort((a, b) => fila[b].v - fila[a].v);
+      const sin = UE.filter((p) => !fila[p]);
+      [...orden, ...sin].forEach((p, i) => {
+        const f = filas[p];
+        const d = fila[p];
+        f.style.transform = `translateY(${i * alto}px)`;
+        f.style.opacity = d ? '1' : '0.3';
+        f.classList.toggle('foco', p === foco && p !== 'ES');
+        f.querySelector('.pos').textContent = d ? i + 1 : '–';
+        const barra = f.querySelector('.barra-c');
+        if (d) {
+          const v = Math.max(lo, Math.min(hi, d.v));
+          barra.style.left = `${((Math.min(0, v) - lo) / (hi - lo)) * 100}%`;
+          barra.style.width = `${Math.max(0.8, (Math.abs(v) / (hi - lo)) * 100)}%`;
+          barra.style.background = colorEn(escala, (d.v - zmin) / (zmax - zmin || 1));
+          const val = f.querySelector('.val');
+          val.textContent = fmt(d.v, dec);
+          val.style.fontStyle = d.estimado ? 'italic' : 'normal';
+        } else {
+          barra.style.width = '0';
+          f.querySelector('.val').textContent = '—';
+        }
+      });
+      return orden;
+    }
+
+    function trazaMapa(fila) {
+      const paises = UE.filter((p) => fila[p]);
+      return {
+        type: 'choropleth', locationmode: 'ISO-3',
+        locations: paises.map((p) => ISO3[p]),
+        z: paises.map((p) => fila[p].v),
+        customdata: paises.map((p) => [ctx.nombrePais(p), fila[p].estimado ? ' (último dato disponible)' : '']),
+        hovertemplate: `<b>%{customdata[0]}</b><br>%{z:.${dec}f}${sufijo}%{customdata[1]}<extra></extra>`,
+        zmin, zmax, zauto: false,
+        colorscale: escala.map((c, i) => [i / (escala.length - 1), c]),
+        marker: { line: { color: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#05080f', width: 0.8 } },
+        colorbar: { thickness: 10, len: 0.7, x: 0.98, outlinewidth: 0, ticksuffix: sufijo, tickfont: { size: 11 } },
+      };
+    }
+
+    function actualizarTextos(orden, fila) {
+      const fecha = fechas[indice];
+      $('[data-fecha]').textContent = fechaTexto(fecha, info.frecuencia);
+      const puesto = orden.indexOf('ES') + 1;
+      const media = orden.length ? orden.reduce((s, p) => s + fila[p].v, 0) / orden.length : null;
+      const ea = (datos.EA || []).filter((x) => x[0] <= fecha).at(-1);
+      const elegido = foco !== 'ES' && fila[foco] ? ` · <span>${ctx.nombrePais(foco)}: <strong>${fmt(fila[foco].v, dec)}${sufijo}</strong></span>` : '';
+      $('[data-resumen]').innerHTML = `${puesto ? `<span>España: <strong>${fmt(fila.ES.v, dec)}${sufijo}</strong> · <strong>${puesto}.º</strong> valor más alto de ${orden.length}</span>` : ''}
+        ${media != null ? `<span>Media simple UE: <strong>${fmt(media, dec)}${sufijo}</strong></span>` : ''}
+        ${ea ? `<span>Zona euro: <strong>${fmt(ea[1], dec)}${sufijo}</strong></span>` : ''}${elegido}`;
+    }
+
+    let primera = true;
+    function mostrar(i) {
+      indice = Math.max(0, Math.min(fechas.length - 1, i));
+      deslizador.value = indice;
+      const fila = tabla[indice];
+      const orden = pintarCarrera(fila);
+      actualizarTextos(orden, fila);
+      const t = trazaMapa(fila);
+      if (primera) {
+        primera = false;
+        return Plotly.newPlot(divMapa, [t], {
+          ...layout(), margin: { l: 0, r: 0, t: 0, b: 0 }, hovermode: 'closest',
+          geo: {
+            scope: 'europe', projection: { type: 'mercator' }, resolution: 50,
+            lonaxis: { range: [-24, 42] }, lataxis: { range: [34, 70.5] },
+            bgcolor: 'rgba(0,0,0,0)', showframe: false, showcoastlines: false,
+            showland: true, landcolor: getComputedStyle(document.documentElement).getPropertyValue('--panel-2').trim() || '#111827',
+            showcountries: true, countrycolor: getComputedStyle(document.documentElement).getPropertyValue('--line-2').trim() || '#334155',
+            showocean: false, showlakes: false,
+          },
+        }, { ...CONFIG, scrollZoom: false });
+      }
+      return Plotly.restyle(divMapa, { locations: [t.locations], z: [t.z], customdata: [t.customdata] }, [0]);
+    }
+
+    const ICONO_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>';
+    const ICONO_PAUSA = '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+    function pintarBoton() {
+      botonPlay.innerHTML = reproduciendo ? ICONO_PAUSA : ICONO_PLAY;
+      botonPlay.setAttribute('aria-label', reproduciendo ? 'Pausar' : 'Reproducir');
+    }
+    function parar() { reproduciendo = false; clearTimeout(reloj); pintarBoton(); }
+    function paso() {
+      if (!reproduciendo) return;
+      if (indice >= fechas.length - 1) { parar(); return; }
+      mostrar(indice + 1);
+      reloj = setTimeout(paso, pausa);
+    }
+    function reproducir() {
+      if (reproduciendo) { parar(); return; }
+      reproduciendo = true;
+      pintarBoton();
+      // Si estaba al final, empieza desde el primer periodo con suficientes países.
+      if (indice >= fechas.length - 1) {
+        const inicio = tabla.findIndex((f) => Object.keys(f).filter((p) => p !== 'EA').length >= 15);
+        mostrar(Math.max(0, inicio));
+      }
+      reloj = setTimeout(paso, sinMovimiento ? 0 : pausa);
+    }
+
+    botonPlay.addEventListener('click', reproducir);
+    deslizador.addEventListener('input', () => { parar(); mostrar(Number(deslizador.value)); });
+    $('.velocidad').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-vel]');
+      if (!b) return;
+      pausa = VELOCIDADES[b.dataset.vel];
+      nodo.querySelectorAll('[data-vel]').forEach((x) => x.classList.toggle('on', x === b));
+    });
+    $('[data-indicador]').addEventListener('change', (e) => { location.hash = `#/mapa/${e.target.value}`; });
+
+    // ---- Historia del país elegido
+    const hist = tarjeta({
+      titulo: 'Historia del país elegido',
+      sub: 'Pulsa un país en el mapa o en la clasificación. Siempre se compara con España y la zona euro.',
+      fuente: `Eurostat (${info.nombre})`,
+    });
+    hist.grafico.style.height = '340px';
+
+    function pintarHistoria() {
+      const trazas = [];
+      const nombres = {};
+      const fuera = [];
+      if (foco !== 'ES' && datos[foco]) {
+        trazas.push(linea(ctx.nombrePais(foco), datos[foco], getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00e5ff', { sufijo, line: { width: 2.8 } }));
+        nombres[ctx.nombrePais(foco)] = datos[foco];
+      }
+      if (datos.ES) { trazas.push(linea('España', datos.ES, COLORES.ES, { sufijo, line: { width: foco === 'ES' ? 2.8 : 2.2 } })); nombres.España = datos.ES; }
+      if (datos.EA) { trazas.push(linea('Zona euro', datos.EA, COLORES.EA, { sufijo, line: { dash: 'dot' } })); nombres['Zona euro'] = datos.EA; } else fuera.push('EA');
+      hist.el.querySelector('h2').textContent = foco === 'ES' ? 'Historia: España frente a la zona euro' : `Historia: ${ctx.nombrePais(foco)} frente a España`;
+      const marca = fechas[indice];
+      dibujar(hist.grafico, trazas, {
+        shapes: [{ type: 'line', xref: 'x', yref: 'paper', x0: marca, x1: marca, y0: 0, y1: 1, line: { color: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#a855f7', width: 1, dash: 'dot' } }],
+      });
+      const t = Object.fromEntries(Object.entries(nombres));
+      const cab = ['Fecha', ...Object.keys(t)];
+      const mapas = Object.values(t).map((s) => new Map(s));
+      const fs = [...new Set(Object.values(t).flatMap((s) => s.map((p) => p[0])))].sort();
+      hist.setDatos({ cabeceras: cab, filas: fs.map((f) => [f, ...mapas.map((m) => m.get(f) ?? '')]) });
+    }
+
+    function enfocar(p) {
+      if (!p || !UE.includes(p)) return;
+      foco = p;
+      mostrar(indice);
+      pintarHistoria();
+      if (p !== 'ES') avisar(`${ctx.nombrePais(p)}: comparando con España`, 'info', 1800);
+    }
+    carrera.addEventListener('click', (e) => enfocar(e.target.closest('[data-pais]')?.dataset.pais));
+
+    // ---- Tabla del periodo con descarga
+    const descargar = document.createElement('button');
+    descargar.className = 'btn';
+    descargar.textContent = 'Descargar el periodo (CSV)';
+    descargar.style.marginTop = '10px';
+    descargar.addEventListener('click', () => {
+      const fila = tabla[indice];
+      descargarCSV(`${id}_${fechas[indice]}.csv`, ['País', 'Código', 'Valor', 'Fecha', 'Último dato disponible'],
+        UE.filter((p) => fila[p]).sort((a, b) => fila[b].v - fila[a].v).map((p) => [ctx.nombrePais(p), p, fila[p].v, fechas[indice], fila[p].estimado ? 'sí' : 'no']));
+    });
+    carrera.parentElement.appendChild(descargar);
+
+    nodo.appendChild(hist.el);
+    nodo.classList.add('rejilla');
+
+    pintarBoton();
+    await mostrar(indice);
+    divMapa.on('plotly_click', (ev) => enfocar(DE_ISO3[ev.points?.[0]?.location]));
+    pintarHistoria();
+
+    // Al moverse en el tiempo, la marca vertical del gráfico de historia sigue a la fecha.
+    const moverMarca = () => {
+      if (!hist.grafico.layout) return;
+      Plotly.relayout(hist.grafico, { 'shapes[0].x0': fechas[indice], 'shapes[0].x1': fechas[indice] });
+    };
+    deslizador.addEventListener('change', moverMarca);
+    let ultimaMarca = 0;
+    const observarMarca = setInterval(() => { if (ultimaMarca !== indice) { ultimaMarca = indice; moverMarca(); } }, 300);
+
+    const teclas = (e) => {
+      if (e.target.closest?.('input, textarea, select, button') || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === ' ') { e.preventDefault(); reproducir(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); parar(); mostrar(indice + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); parar(); mostrar(indice - 1); }
+    };
+    document.addEventListener('keydown', teclas);
+    limpiar = () => { parar(); clearInterval(observarMarca); document.removeEventListener('keydown', teclas); };
+  },
+};
