@@ -12,7 +12,7 @@ export default {
       series(['ipc_general_indice'], { paises: ['ES'] }),
     ]);
     nodo.className = 'rejilla';
-    nodo.innerHTML = `<header class="cabecera"><h1>Inflación y poder adquisitivo</h1>
+    nodo.innerHTML = `<header class="cabecera"><span class="etiqueta">INE · Eurostat</span><h1>Inflación y <span class="degradado">poder adquisitivo</span></h1>
       <p>Cómo suben los precios en España (IPC del INE), cómo se compara con Europa (IAPC armonizado de Eurostat) y cuánto poder de compra se pierde con el tiempo.</p></header>`;
 
     // 1. IPC general frente a subyacente

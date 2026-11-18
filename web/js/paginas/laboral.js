@@ -15,7 +15,7 @@ export default {
   async render(nodo, ctx) {
     const datos = await series(['paro', 'paro_jovenes'], { paises: ctx.paises, desde: ctx.desde, hasta: ctx.hasta });
     nodo.className = 'rejilla';
-    nodo.innerHTML = `<header class="cabecera"><h1>Mercado laboral</h1>
+    nodo.innerHTML = `<header class="cabecera"><span class="etiqueta">INE · Eurostat</span><h1>Mercado <span class="degradado">laboral</span></h1>
       <p>Tasa de paro general y juvenil (menores de 25 años) armonizada por Eurostat, y la relación entre paro e inflación: la curva de Phillips.</p></header>`;
 
     const fila = document.createElement('div');

@@ -8,7 +8,7 @@ export default {
     const d = await series(['bce_deposito', 'bce_refinanciacion', 'bce_marginal', 'euribor_12m', 'tipo_hipotecas', 'm3_var'],
       { paises: ['ES', 'EA'], desde: ctx.desde, hasta: ctx.hasta });
     nodo.className = 'rejilla';
-    nodo.innerHTML = `<header class="cabecera"><h1>Política monetaria y condiciones financieras</h1>
+    nodo.innerHTML = `<header class="cabecera"><span class="etiqueta">Banco Central Europeo</span><h1>Política monetaria y <span class="degradado">condiciones financieras</span></h1>
       <p>Los tipos de interés del Banco Central Europeo, cómo se trasladan al euríbor y a las hipotecas, y el crecimiento del dinero en la zona euro.</p></header>`;
 
     // 1. Corredor de tipos

@@ -22,7 +22,7 @@ export default {
     const d = await series(['bono_10a', 'deuda_publica', 'saldo_publico'],
       { paises: [...new Set([...ctx.paises, 'DE'])], desde: ctx.desde, hasta: ctx.hasta });
     nodo.className = 'rejilla';
-    nodo.innerHTML = `<header class="cabecera"><h1>Finanzas públicas</h1>
+    nodo.innerHTML = `<header class="cabecera"><span class="etiqueta">Eurostat</span><h1>Finanzas <span class="degradado">públicas</span></h1>
       <p>Lo que pagan los Estados por endeudarse, la prima de riesgo frente a Alemania, y cómo evolucionan la deuda y el déficit públicos
       respecto a las reglas fiscales europeas.</p></header>`;
     const bono = d.bono_10a || {};

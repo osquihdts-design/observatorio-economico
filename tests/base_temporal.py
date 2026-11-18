@@ -16,7 +16,7 @@ MOMENTO = datetime(2026, 11, 16, 10, 0, tzinfo=timezone.utc)
 
 def _obs(indicador, nombre, pais, fecha, valor, frecuencia="M", fuente="EUROSTAT", unidad="%"):
     return Observacion(date=fecha, indicator_id=indicador, indicator_name=nombre, country_code=pais,
-                       country_name=config.PAISES[pais], value=valor, unit=unidad, frequency=frecuencia,
+                       country_name=config.NOMBRES[pais], value=valor, unit=unidad, frequency=frecuencia,
                        source=fuente, series_code=f"prueba_{indicador}", status=None, last_updated=MOMENTO)
 
 

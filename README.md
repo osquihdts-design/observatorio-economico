@@ -5,7 +5,8 @@ Panel interactivo de datos económicos oficiales de **España frente a Europa**,
 
 - Datos reales del **INE**, **Eurostat** y el **Banco Central Europeo**, descargados de sus APIs públicas (sin claves ni registro).
 - 26 indicadores: inflación, paro, PIB, vivienda, salarios, tipos de interés, hipotecas, dinero, prima de riesgo, deuda y déficit públicos.
-- Comparación con Alemania, Francia, Italia, Portugal y la zona euro.
+- Comparación con Alemania, Francia, Italia, Portugal y la zona euro, y **mapa animado de los 27 países de la UE**.
+- Interfaz futurista e interactiva: tema oscuro/claro, fondo de partículas que reacciona al ratón, ticker de datos en vivo, paleta de comandos (`Ctrl+K`), atajos de teclado, gráficos a pantalla completa con zoom y transiciones animadas.
 - Regresiones, test de estacionariedad, filtro Hodrick-Prescott y correlaciones con retardos, con exportación a Excel y citas en formato APA.
 - Hecho **solo con Python estándar**: no hay que instalar ninguna librería.
 
@@ -58,12 +59,22 @@ Otros comandos útiles:
 - **Estado de las fuentes:** semáforo por fuente (verde: al día · ámbar: falló algún indicador o datos de más de 24 h · rojo: falló la descarga) con la hora de la última sincronización.
 - **Actualizar datos ahora**, con barra de progreso real.
 - **Modo explicación académica:** muestra bajo cada gráfico la metodología, la fórmula y cómo interpretarlo.
+- **Tema claro / oscuro** (el oscuro es el de por defecto).
+
+### Interacción
+
+- **Paleta de comandos** (`Ctrl+K` o `/`): busca páginas, indicadores, países, periodos y acciones sin importar tildes.
+- **Atajos:** `1`–`8` cambian de página · `T` tema · `A` modo académico · `U` actualizar datos · `?` lista de atajos · `Esc` cerrar.
+- **Ticker** con el último dato y la variación de 15 indicadores clave; cada elemento lleva a su página.
+- **⤢ Ampliar** en cada gráfico: pantalla completa con zoom (rueda del ratón) y barra para moverse en el tiempo.
+- Animaciones (números que cuentan, líneas que se dibujan, tarjetas con inclinación 3D). Se desactivan si el sistema pide «reducir movimiento».
 
 ### Páginas
 
 | Página | Contenido |
 |---|---|
-| **Portada** | 5 tarjetas (inflación, paro, PIB, euríbor, vivienda) con último dato, variación con color contextual, minigráfico y referencia de la zona euro · divergencia España–zona euro en inflación y paro · tabla de todos los indicadores. |
+| **Portada** | Radar de posición europea (en qué lugar queda España entre los 27 en inflación, paro, crecimiento, deuda, déficit y coste de la deuda) · 5 tarjetas (inflación, paro, PIB, euríbor, vivienda) con último dato, variación con color contextual y minigráfico · divergencia España–zona euro · tabla de todos los indicadores que se puede ordenar y filtrar. |
+| **Mapa de Europa** | Mapa de coropletas de los 27 países para cualquier indicador europeo, con reproductor (▶, línea de tiempo y velocidad) desde el año 2000, carrera de barras sincronizada, puesto de España e historia del país que se pulse. Atajos: `Espacio`, `←` `→`. |
 | **Inflación y precios** | IPC general y subyacente (INE) frente al objetivo del 2 % del BCE · comparativa europea del IAPC · calculadora de poder adquisitivo entre dos fechas. |
 | **Mercado laboral** | Paro general y juvenil por países · curva de Phillips empírica con una recta por subperiodo (antes de la COVID, COVID, ciclo restrictivo del BCE y bajadas de tipos). |
 | **Política monetaria** | Corredor de tipos del BCE con el euríbor · transmisión del euríbor a las nuevas hipotecas en España y la zona euro · crecimiento de M3. |

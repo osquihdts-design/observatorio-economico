@@ -25,7 +25,7 @@ export default {
       series(['precio_vivienda_var'], { paises: ctx.paises, desde: ctx.desde, hasta: ctx.hasta }),
     ]);
     nodo.className = 'rejilla';
-    nodo.innerHTML = `<header class="cabecera"><h1>Vivienda y salarios</h1>
+    nodo.innerHTML = `<header class="cabecera"><span class="etiqueta">INE · Eurostat</span><h1>Vivienda y <span class="degradado">salarios</span></h1>
       <p>La evolución del precio de la vivienda en España según el INE y Eurostat, y si los salarios suben al mismo ritmo.</p></header>`;
 
     // 1. Índices de precios de vivienda (base 2015 = 100)

@@ -1,35 +1,49 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-tema="oscuro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Observatorio económico</title>
+    <meta name="theme-color" content="#05080f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%2300e5ff%27/%3E%3Cstop offset=%271%27 stop-color=%27%23a855f7%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23g)%27/%3E%3Cpath d=%27M7 22l5-6 4 3 8-10%27 stroke=%27%2305080f%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23003399%27/%3E%3Cpath d=%27M8 22l5-6 4 3 7-9%27 stroke=%27white%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
   </head>
   <body>
+    <!-- Fondo animado: red de partículas que reacciona al ratón -->
+    <canvas id="fondo" aria-hidden="true"></canvas>
+    <div class="aurora" aria-hidden="true"></div>
+
     <div class="app">
       <aside class="sidebar" id="sidebar">
-        <div class="brand">
-          <div class="logo" aria-hidden="true">◧</div>
-          <div>
-            <strong>Observatorio económico</strong>
-            <span>España frente a Europa</span>
+        <a class="brand" href="#/portada">
+          <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 32 32"><path d="M7 22l5-6 4 3 8-10" /></svg>
           </div>
-        </div>
+          <div>
+            <strong>Observatorio</strong>
+            <span>económico · España vs Europa</span>
+          </div>
+        </a>
+
+        <button class="buscador" id="abrir-paleta" title="Buscar páginas, indicadores y acciones">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <span>Buscar o ir a…</span>
+          <kbd>Ctrl K</kbd>
+        </button>
 
         <nav class="nav" id="nav">
-          <a href="#/portada" data-page="portada">Portada</a>
-          <a href="#/inflacion" data-page="inflacion">Inflación y precios</a>
-          <a href="#/laboral" data-page="laboral">Mercado laboral</a>
-          <a href="#/monetaria" data-page="monetaria">Política monetaria</a>
-          <a href="#/vivienda" data-page="vivienda">Vivienda y salarios</a>
-          <a href="#/finanzas" data-page="finanzas">Finanzas públicas</a>
-          <a href="#/laboratorio" data-page="laboratorio">Laboratorio econométrico</a>
+          <a href="#/portada" data-page="portada"><i>01</i>Portada</a>
+          <a href="#/mapa" data-page="mapa"><i>02</i>Mapa de Europa <em>nuevo</em></a>
+          <a href="#/inflacion" data-page="inflacion"><i>03</i>Inflación y precios</a>
+          <a href="#/laboral" data-page="laboral"><i>04</i>Mercado laboral</a>
+          <a href="#/monetaria" data-page="monetaria"><i>05</i>Política monetaria</a>
+          <a href="#/vivienda" data-page="vivienda"><i>06</i>Vivienda y salarios</a>
+          <a href="#/finanzas" data-page="finanzas"><i>07</i>Finanzas públicas</a>
+          <a href="#/laboratorio" data-page="laboratorio"><i>08</i>Laboratorio econométrico</a>
         </nav>
 
         <section class="side-block">
@@ -53,7 +67,7 @@
         </section>
 
         <section class="side-block">
-          <h3>Estado de las fuentes</h3>
+          <h3>Fuentes <span class="en-vivo"><i></i>en vivo</span></h3>
           <ul class="fuentes" id="fuentes"></ul>
           <button class="btn full" id="btn-actualizar">Actualizar datos ahora</button>
           <div class="progreso" id="progreso" hidden>
@@ -62,24 +76,81 @@
           </div>
         </section>
 
-        <section class="side-block">
+        <section class="side-block opciones">
           <label class="switch">
             <input type="checkbox" id="academico" />
             <span class="slider" aria-hidden="true"></span>
             <span>Modo explicación académica</span>
           </label>
-          <p class="hint">Muestra bajo cada gráfico cómo se calcula el indicador, su fórmula y cómo interpretarlo.</p>
+          <label class="switch">
+            <input type="checkbox" id="tema-claro" />
+            <span class="slider" aria-hidden="true"></span>
+            <span>Tema claro</span>
+          </label>
+          <button class="ayuda-teclas" id="abrir-ayuda">Atajos de teclado <kbd>?</kbd></button>
         </section>
       </aside>
 
       <main class="main">
+        <header class="barra-superior">
+          <button class="menu-movil" id="menu-movil" aria-label="Abrir menú">☰</button>
+          <div class="ticker" id="ticker" aria-label="Últimos datos">
+            <div class="ticker-pista" id="ticker-pista"></div>
+          </div>
+          <div class="reloj" id="reloj" aria-hidden="true"></div>
+        </header>
         <div class="aviso" id="aviso" hidden></div>
         <div id="pagina" class="pagina"></div>
         <footer class="pie">
-          Datos: Instituto Nacional de Estadística (INE), Eurostat y Banco Central Europeo. Hecho con Python estándar y Plotly.
+          Datos: Instituto Nacional de Estadística (INE), Eurostat y Banco Central Europeo · Hecho con Python estándar y Plotly ·
+          <a href="https://github.com/osquihdts-design/observatorio-economico" target="_blank" rel="noopener">Código en GitHub</a>
         </footer>
       </main>
     </div>
+
+    <!-- Paleta de comandos (Ctrl+K) -->
+    <div class="capa" id="paleta" hidden>
+      <div class="paleta" role="dialog" aria-modal="true" aria-label="Buscar">
+        <div class="paleta-entrada">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <input id="paleta-texto" type="text" placeholder="Escribe: paro, mapa, prima de riesgo, tema…" autocomplete="off" spellcheck="false" />
+          <kbd>Esc</kbd>
+        </div>
+        <ul class="paleta-lista" id="paleta-lista" role="listbox"></ul>
+        <div class="paleta-pie"><span><kbd>↑</kbd><kbd>↓</kbd> moverse</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span></div>
+      </div>
+    </div>
+
+    <!-- Gráfico a pantalla completa -->
+    <div class="capa" id="visor" hidden>
+      <div class="visor" role="dialog" aria-modal="true">
+        <div class="visor-cabecera">
+          <h2 id="visor-titulo"></h2>
+          <button class="cerrar" id="visor-cerrar" aria-label="Cerrar">✕</button>
+        </div>
+        <div id="visor-grafico" class="visor-grafico"></div>
+        <p class="visor-pista">Arrastra para hacer zoom · doble clic para volver · usa la barra inferior para moverte en el tiempo</p>
+      </div>
+    </div>
+
+    <!-- Ayuda de atajos -->
+    <div class="capa" id="ayuda" hidden>
+      <div class="panel-ayuda" role="dialog" aria-modal="true" aria-label="Atajos de teclado">
+        <div class="visor-cabecera"><h2>Atajos de teclado</h2><button class="cerrar" data-cerrar aria-label="Cerrar">✕</button></div>
+        <dl class="atajos">
+          <dt><kbd>Ctrl</kbd> <kbd>K</kbd> o <kbd>/</kbd></dt><dd>Buscar y saltar a cualquier sitio</dd>
+          <dt><kbd>1</kbd> … <kbd>8</kbd></dt><dd>Ir a cada página</dd>
+          <dt><kbd>A</kbd></dt><dd>Modo explicación académica</dd>
+          <dt><kbd>T</kbd></dt><dd>Cambiar tema claro / oscuro</dd>
+          <dt><kbd>U</kbd></dt><dd>Actualizar los datos</dd>
+          <dt><kbd>Espacio</kbd></dt><dd>Reproducir / pausar el mapa de Europa</dd>
+          <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Avanzar / retroceder en el tiempo (mapa)</dd>
+          <dt><kbd>Esc</kbd></dt><dd>Cerrar ventanas</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="avisos-flotantes" id="avisos" aria-live="polite"></div>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>

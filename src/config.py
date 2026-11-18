@@ -13,7 +13,7 @@ BASE_DATOS = CARPETA_DATOS / "observatorio.sqlite"
 
 FECHA_INICIO = "2000-01"  # se descarga todo desde el año 2000
 
-# Países comparables. «EA» es la zona euro.
+# Países que se pueden comparar en la barra lateral. «EA» es la zona euro.
 PAISES = {
     "ES": "España",
     "DE": "Alemania",
@@ -22,6 +22,19 @@ PAISES = {
     "PT": "Portugal",
     "EA": "Zona euro",
 }
+
+# Los 27 países de la UE (códigos de Eurostat: Grecia es «EL»). De Eurostat se descargan
+# todos, para el mapa de Europa y el laboratorio.
+PAISES_UE = {
+    "AT": "Austria", "BE": "Bélgica", "BG": "Bulgaria", "CY": "Chipre", "CZ": "Chequia", "DE": "Alemania",
+    "DK": "Dinamarca", "EE": "Estonia", "EL": "Grecia", "ES": "España", "FI": "Finlandia", "FR": "Francia",
+    "HR": "Croacia", "HU": "Hungría", "IE": "Irlanda", "IT": "Italia", "LT": "Lituania", "LU": "Luxemburgo",
+    "LV": "Letonia", "MT": "Malta", "NL": "Países Bajos", "PL": "Polonia", "PT": "Portugal", "RO": "Rumanía",
+    "SE": "Suecia", "SI": "Eslovenia", "SK": "Eslovaquia",
+}
+
+# Nombre de cualquier código que pueda aparecer en la base de datos.
+NOMBRES = {**PAISES_UE, "EA": "Zona euro"}
 
 # Eurostat usa códigos distintos para la zona euro según la tabla y el año
 # (en 2026 entró Bulgaria: EA20 → EA21). Se prueba en este orden y se usa el primero con datos.

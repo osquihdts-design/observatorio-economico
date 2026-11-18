@@ -157,6 +157,7 @@ def api_catalogo(_q):
             for ind in CATALOGO.values()
         ],
         "paises": config.PAISES,
+        "nombres": config.NOMBRES,
         "transformaciones": time_series.TRANSFORMACIONES,
         "lambda_hp": time_series.LAMBDA_HP,
     }
