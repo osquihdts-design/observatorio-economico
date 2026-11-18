@@ -34,6 +34,12 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 4. ✅ Fase 4: 48 tests (`tests/`: econometría, conectores con respuestas grabadas, almacenamiento, API de punta a punta sobre base temporal con `tests/base_temporal.py`), `.github/workflows/` (tests en Linux y Windows; actualización diaria que publica los datos como artifact) y `README.md`.
    - `storage` lee `config.BASE_DATOS` en cada llamada (no como valor por defecto) para que los tests usen una base temporal.
 
+5. ✅ Diseño revisado con capturas reales (Playwright) y página «Finanzas públicas» (`web/js/paginas/finanzas.js`): prima de riesgo (bono 10 años `irt_lt_mcby_m` frente a DE, en pb), deuda (`gov_10q_ggdebt`) y saldo público (`gov_10q_ggnfa`, `s_adj=SCA`: SA solo existe para Francia). 26 indicadores, 52 tests.
+
+## Publicación
+- Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
+- GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC, datos como artifact). Acciones en v7 (Node 24).
+
 ## Ideas siguientes
 - Más indicadores (salarios, deuda pública, prima de riesgo, IPC por grupos, datos del INE por comunidades).
 - Previsión sencilla (tendencia), exportar informe en PDF.

@@ -64,6 +64,28 @@ const TEXTOS = {
       Si el índice sube por encima de 100, la vivienda se ha encarecido más rápido que los salarios: comprar exige más esfuerzo que en 2015.`,
     formula: 'Esfuerzo<sub>t</sub> = (IPV<sub>t</sub><sup>2015=100</sup> / Salario<sub>t</sub><sup>2015=100</sup>) × 100',
   },
+  prima: {
+    texto: `La prima de riesgo es lo que paga de más un Estado por financiarse respecto a Alemania, que se toma como referencia «sin riesgo» en la zona euro.
+      Refleja la desconfianza de los inversores (riesgo de impago, deuda alta, inestabilidad política). En la crisis de deuda de julio de 2012 la prima española
+      superó algún día los 600 puntos básicos (el gráfico usa medias mensuales, por eso su pico es algo menor); el anuncio del BCE de ese mismo mes
+      («lo que haga falta») y sus compras de deuda la redujeron.`,
+    formula: 'Prima<sub>t</sub> = (r<sub>España, t</sub><sup>10 años</sup> − r<sub>Alemania, t</sub><sup>10 años</sup>) × 100 &nbsp;[puntos básicos]',
+  },
+  bono: {
+    texto: `Rentabilidad de la deuda pública a 10 años en el mercado secundario (la que se usa para el criterio de convergencia de Maastricht).
+      Depende de los tipos del BCE, de las expectativas de inflación y del riesgo de cada país.`,
+  },
+  deuda: {
+    texto: `Deuda bruta consolidada de todas las administraciones públicas (Estado, comunidades autónomas, ayuntamientos y Seguridad Social) en % del PIB.
+      Las reglas fiscales europeas fijan una referencia del 60 %. Lo relevante para la sostenibilidad no es solo el nivel, sino la diferencia entre
+      el tipo de interés que se paga y el crecimiento de la economía.`,
+    formula: 'Δd<sub>t</sub> ≈ (r − g)/(1 + g) · d<sub>t−1</sub> − saldo primario<sub>t</sub>',
+  },
+  deficit: {
+    texto: `Diferencia entre ingresos y gastos públicos en % del PIB. Negativo es déficit (el Estado gasta más de lo que ingresa y se endeuda),
+      positivo es superávit. La referencia europea es no superar un déficit del 3 %. Aquí los datos trimestrales están corregidos de efectos
+      estacionales y de calendario, para que los trimestres se puedan comparar entre sí.`,
+  },
   hp: {
     texto: `El filtro de Hodrick-Prescott separa una serie en tendencia (movimiento de largo plazo) y ciclo (desviaciones transitorias).
       λ controla la suavidad: valores habituales son 1.600 para datos trimestrales y 14.400 para mensuales (regla de Ravn-Uhlig).

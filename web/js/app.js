@@ -7,9 +7,10 @@ import inflacion from './paginas/inflacion.js';
 import laboral from './paginas/laboral.js';
 import monetaria from './paginas/monetaria.js';
 import vivienda from './paginas/vivienda.js';
+import finanzas from './paginas/finanzas.js';
 import laboratorio from './paginas/laboratorio.js';
 
-const PAGINAS = { portada, inflacion, laboral, monetaria, vivienda, laboratorio };
+const PAGINAS = { portada, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio };
 const FIJOS = ['ES', 'EA'];
 
 const $ = (s) => document.querySelector(s);

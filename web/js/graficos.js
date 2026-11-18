@@ -62,11 +62,12 @@ export function linea(nombre, puntos, color, opciones = {}) {
   };
 }
 
-/** Línea horizontal de referencia (por ejemplo, el objetivo de inflación del 2 %). */
-export function referencia(y, texto, color = '#6C757D') {
+/** Línea horizontal de referencia (por ejemplo, el objetivo de inflación del 2 %).
+ *  Sin `texto` no se pone etiqueta (útil cuando las líneas pasan justo por ahí y el subtítulo ya lo explica). */
+export function referencia(y, texto = '', color = '#6C757D') {
   return {
     shapes: [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: y, y1: y, line: { dash: 'dot', color, width: 1.5 } }],
-    annotations: [{ xref: 'paper', x: 1, y, text: texto, showarrow: false, xanchor: 'right', yanchor: 'bottom', bgcolor: 'rgba(255,255,255,0.85)', font: { size: 11.5, color } }],
+    annotations: texto ? [{ xref: 'paper', x: 1, y, text: texto, showarrow: false, xanchor: 'right', yanchor: 'bottom', bgcolor: 'rgba(255,255,255,0.85)', font: { size: 11.5, color } }] : [],
   };
 }
 

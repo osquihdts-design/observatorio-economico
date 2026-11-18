@@ -72,6 +72,16 @@ EUROSTAT = [
      "tramos": [{"tabla": "prc_hpi_q", "filtros": {"purchase": "TOTAL", "unit": "RCH_A"}}]},
     {"id": "pib_var", "nombre": "PIB real (variación interanual)", "unidad": "%", "frecuencia": "Q",
      "tramos": [{"tabla": "namq_10_gdp", "filtros": {"unit": "CLV_PCH_SM", "s_adj": "SCA", "na_item": "B1GQ"}}]},
+    # Finanzas públicas
+    {"id": "bono_10a", "nombre": "Rentabilidad del bono a 10 años", "unidad": "%", "frecuencia": "M",
+     "nota": "Bono soberano a 10 años usado en el criterio de convergencia de Maastricht (media mensual).",
+     "tramos": [{"tabla": "irt_lt_mcby_m", "filtros": {"int_rt": "MCBY"}}]},
+    {"id": "deuda_publica", "nombre": "Deuda pública (% del PIB)", "unidad": "% del PIB", "frecuencia": "Q",
+     "nota": "Deuda bruta consolidada de las administraciones públicas (definición de Maastricht).",
+     "tramos": [{"tabla": "gov_10q_ggdebt", "filtros": {"unit": "PC_GDP", "sector": "S13", "na_item": "GD"}}]},
+    {"id": "saldo_publico", "nombre": "Saldo público (% del PIB)", "unidad": "% del PIB", "frecuencia": "Q",
+     "nota": "Capacidad (+) o necesidad (−) de financiación de las administraciones públicas: negativo = déficit. Corregido de estacionalidad y calendario.",
+     "tramos": [{"tabla": "gov_10q_ggnfa", "filtros": {"unit": "PC_GDP", "sector": "S13", "na_item": "B9", "s_adj": "SCA"}}]},
 ]
 
 # BCE: los tipos oficiales son diarios (D); se guarda el último valor de cada mes.

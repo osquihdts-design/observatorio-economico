@@ -4,7 +4,7 @@ Panel interactivo de datos económicos oficiales de **España frente a Europa**,
 **laboratorio econométrico** pensado para trabajos de clase y el TFG.
 
 - Datos reales del **INE**, **Eurostat** y el **Banco Central Europeo**, descargados de sus APIs públicas (sin claves ni registro).
-- 23 indicadores: inflación, paro, PIB, vivienda, salarios, tipos de interés, hipotecas y dinero.
+- 26 indicadores: inflación, paro, PIB, vivienda, salarios, tipos de interés, hipotecas, dinero, prima de riesgo, deuda y déficit públicos.
 - Comparación con Alemania, Francia, Italia, Portugal y la zona euro.
 - Regresiones, test de estacionariedad, filtro Hodrick-Prescott y correlaciones con retardos, con exportación a Excel y citas en formato APA.
 - Hecho **solo con Python estándar**: no hay que instalar ninguna librería.
@@ -45,7 +45,7 @@ Otros comandos útiles:
 |---|---|
 | `python scripts/actualizar_datos.py` | Descarga todos los datos sin abrir la web y muestra un resumen por fuente. |
 | `python scripts/ejemplo_laboratorio.py` | Ejemplo completo de análisis con datos reales y Excel final. |
-| `python -m unittest -v` | Ejecuta los 48 tests. |
+| `python -m unittest -v` | Ejecuta los 52 tests. |
 
 ---
 
@@ -68,6 +68,7 @@ Otros comandos útiles:
 | **Mercado laboral** | Paro general y juvenil por países · curva de Phillips empírica con una recta por subperiodo (antes de la COVID, COVID, ciclo restrictivo del BCE y bajadas de tipos). |
 | **Política monetaria** | Corredor de tipos del BCE con el euríbor · transmisión del euríbor a las nuevas hipotecas en España y la zona euro · crecimiento de M3. |
 | **Vivienda y salarios** | Precio de la vivienda (INE: general, nueva y segunda mano; Eurostat), base 2015 = 100 · índice de esfuerzo vivienda/salarios · comparativa europea. |
+| **Finanzas públicas** | Prima de riesgo frente a Alemania (puntos básicos) · rentabilidad del bono a 10 años · deuda pública y déficit en % del PIB frente a los límites europeos (60 % y −3 %). |
 | **Laboratorio econométrico** | Regresión MCO, test ADF, filtro HP y correlación cruzada (ver abajo). |
 
 Cada gráfico tiene botones para **descargar sus datos** (CSV listo para Excel en español) y **guardarlo como imagen**.
@@ -102,6 +103,9 @@ España, Alemania, Francia, Italia, Portugal y zona euro.
 | Tasa de paro y paro juvenil | `une_rt_m` (`s_adj=SA`, `age=TOTAL` / `Y_LT25`, `sex=T`, `unit=PC_ACT`) |
 | Precio de la vivienda | `prc_hpi_q` (`purchase=TOTAL`, `unit=I15_Q` y `RCH_A`) |
 | PIB real, variación interanual | `namq_10_gdp` (`na_item=B1GQ`, `s_adj=SCA`, `unit=CLV_PCH_SM`) |
+| Rentabilidad del bono a 10 años (mensual) | `irt_lt_mcby_m` (`int_rt=MCBY`) · la prima de riesgo se calcula como diferencia con Alemania |
+| Deuda pública, % del PIB (trimestral) | `gov_10q_ggdebt` (`unit=PC_GDP`, `sector=S13`, `na_item=GD`) |
+| Saldo público, % del PIB (trimestral) | `gov_10q_ggnfa` (`unit=PC_GDP`, `sector=S13`, `na_item=B9`, `s_adj=SCA`) |
 
 ### Banco Central Europeo · ECB Data Portal (SDMX 2.1, CSV)
 
@@ -156,7 +160,7 @@ src/
   econometrics/             Matrices, distribuciones, series temporales, regresión, correlaciones
   reporting/                Creación de Excel (.xlsx) y citas APA
 scripts/                    Actualizar datos y ejemplo de laboratorio
-tests/                      48 tests automáticos
+tests/                      52 tests automáticos
 .github/workflows/          Tests y actualización diaria en GitHub Actions
 ```
 
@@ -184,7 +188,7 @@ tests/                      48 tests automáticos
 python -m unittest -v
 ```
 
-48 tests que no necesitan internet:
+52 tests que no necesitan internet:
 
 - **Exactitud econométrica:** la regresión reproduce los resultados publicados del **cuarteto de Anscombe**
   (coeficientes, errores, t, p, R², F, AIC y BIC); los p-valores coinciden con las **tablas de la t y la F**;
@@ -196,6 +200,7 @@ python -m unittest -v
 - **Base de datos y preparación:** filtros, actualización de datos repetidos, semáforo, mezcla de frecuencias.
 - **API de punta a punta:** sobre una base de datos temporal, incluidos los mensajes de error.
 - **Excel y citas:** el .xlsx es válido y la cita APA tiene el formato correcto.
+- **Catálogo:** identificadores únicos, campos obligatorios y tramos de Eurostat sin solapes (útil al añadir series).
 
 ---
 
