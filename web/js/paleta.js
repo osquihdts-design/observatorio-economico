@@ -98,7 +98,7 @@ export function iniciarAtajos(acciones) {
     if (e.key === 'Escape') { acciones.cerrar(); return; }
     if (escribiendo || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === '/') { e.preventDefault(); acciones.paleta(); }
-    else if (/^[1-8]$/.test(e.key)) acciones.pagina(Number(e.key) - 1);
+    else if (/^[0-9]$/.test(e.key)) acciones.pagina(e.key === '0' ? 9 : Number(e.key) - 1);
     else if (e.key.toLowerCase() === 'a') acciones.academico();
     else if (e.key.toLowerCase() === 't') acciones.tema();
     else if (e.key.toLowerCase() === 'u') acciones.actualizar();

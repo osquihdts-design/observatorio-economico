@@ -12,10 +12,16 @@ import monetaria from './paginas/monetaria.js';
 import vivienda from './paginas/vivienda.js';
 import finanzas from './paginas/finanzas.js';
 import laboratorio from './paginas/laboratorio.js';
+import centro from './paginas/centro.js';
+import biblioteca from './paginas/biblioteca.js';
+import fichas from './paginas/fichas.js';
+import { cargarTaxonomia, editarRecurso, tax } from './investigacion.js';
 
-const PAGINAS = { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio };
+const PAGINAS = { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio, investigacion: centro, biblioteca, fichas };
 const ORDEN = Object.keys(PAGINAS);
-const ICONOS = { portada: '◈', mapa: '🗺', inflacion: '%', laboral: '⚒', monetaria: '€', vivienda: '⌂', finanzas: '⚖', laboratorio: '∑' };
+const ICONOS = { portada: '◈', mapa: '🗺', inflacion: '%', laboral: '⚒', monetaria: '€', vivienda: '⌂', finanzas: '⚖', laboratorio: '∑',
+  investigacion: '◎', biblioteca: '▤', fichas: '◧' };
+const TECLA = (i) => (i < 9 ? `Tecla ${i + 1}` : i === 9 ? 'Tecla 0' : '');
 const FIJOS = ['ES', 'EA'];
 
 // Página donde se explica cada indicador (para la paleta de comandos y el ticker).
@@ -206,8 +212,17 @@ function comandos() {
   const lista = [];
   let orden = 0;
   const add = (c) => lista.push({ orden: orden++, ...c });
-  ORDEN.forEach((p, i) => add({ tipo: 'página', icono: ICONOS[p], titulo: PAGINAS[p].titulo, detalle: `Tecla ${i + 1}`,
+  ORDEN.forEach((p, i) => add({ tipo: 'página', icono: ICONOS[p], titulo: PAGINAS[p].titulo, detalle: TECLA(i),
     claves: p, accion: () => { location.hash = `#/${p}`; } }));
+  add({ tipo: 'investigación', icono: '+', titulo: 'Nuevo recurso de investigación', detalle: 'Dato, informe, teoría o predicción',
+    claves: 'crear anadir recurso nota', accion: () => editarRecurso(null, (r) => { location.hash = `#/biblioteca/${r.id}`; }) });
+  for (const f of tax()?.fichas || []) {
+    add({ tipo: 'ficha', icono: '◧', titulo: f.titulo, detalle: 'Ficha de investigación', claves: `ficha ${f.id}`, accion: () => { location.hash = `#/fichas/${f.id}`; } });
+  }
+  for (const r of tax()?.recursos || []) {
+    add({ tipo: 'recurso', icono: '▤', titulo: r.titulo, detalle: tax().tipos[r.tipo]?.nombre, claves: `recurso ${r.id}`,
+      accion: () => { location.hash = `#/biblioteca/${r.id}`; } });
+  }
   for (const ind of catalogo?.indicadores || []) {
     add({ tipo: 'indicador', icono: '↗', titulo: ind.nombre, detalle: `${ind.fuente === 'EUROSTAT' ? 'Eurostat' : ind.fuente} · ${PAGINAS[PAGINA_DE(ind.id)].titulo}`,
       claves: `${ind.id} ${ind.nota || ''}`, accion: () => { location.hash = `#/${PAGINA_DE(ind.id)}`; } });
@@ -312,6 +327,7 @@ window.addEventListener('hashchange', pintar);
     seguirActualizacion();
   }
   await cargarTicker().catch(() => {});
+  cargarTaxonomia().catch(() => {}); // para que la paleta encuentre recursos y fichas
   pintar();
   if (!leer('bienvenida', false)) {
     setTimeout(() => avisar('Consejo: pulsa Ctrl+K para buscar cualquier cosa, o ? para ver los atajos', 'info', 7000), 1500);

@@ -41,6 +41,10 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
    - Colores de Plotly según el tema con `graficos.tono()`: las páginas usan los colores institucionales y se traducen solos en oscuro.
    - Con Playwright, las tarjetas `.revelable` solo aparecen al entrar en pantalla: para capturas de página completa, añade antes la clase `visible`.
 
+7. ✅ Centro de investigación (`src/research/`, `web/js/investigacion.js`, `web/js/paginas/{centro,biblioteca,fichas}.js`, `web/css/investigacion.css`): tablas `inv_*` en la misma SQLite (FTS5 con `remove_diacritics`), taxonomía fija en `taxonomia.py`, semilla con cifras reales (BCE sept. 2026, BdE oct. 2026) y predicciones propias marcadas como ejemplo. 68 tests.
+   - Obsidian = carpeta de notas: `obsidian.sincronizar` importa primero (gana lo más reciente por fecha de modificación) y luego exporta a `<bóveda>/Observatorio/`. Bóveda del usuario: `C:\Users\osqui\Downloads\mybrain\My brain` (ajuste `boveda` en `inv_ajustes`). Los tests usan una bóveda temporal: nunca la real.
+   - `almacen.conectar` prepara tablas y semilla una sola vez por proceso con un candado (el servidor es multihilo).
+
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
 - GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC, datos como artifact). Acciones en v7 (Node 24).
