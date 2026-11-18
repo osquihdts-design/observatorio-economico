@@ -7,6 +7,7 @@ Panel interactivo de datos económicos oficiales de **España frente a Europa**,
 - 26 indicadores: inflación, paro, PIB, vivienda, salarios, tipos de interés, hipotecas, dinero, prima de riesgo, deuda y déficit públicos.
 - Comparación con Alemania, Francia, Italia, Portugal y la zona euro, y **mapa animado de los 27 países de la UE**.
 - Interfaz futurista e interactiva: tema oscuro/claro, fondo de partículas que reacciona al ratón, ticker de datos en vivo, paleta de comandos (`Ctrl+K`), atajos de teclado, gráficos a pantalla completa con zoom y transiciones animadas.
+- **Centro de investigación**: biblioteca de fuentes oficiales y análisis propios con buscador facetado, fichas de investigación en pantalla dividida, citas APA al portapapeles y sincronización con **Obsidian**.
 - Regresiones, test de estacionariedad, filtro Hodrick-Prescott y correlaciones con retardos, con exportación a Excel y citas en formato APA.
 - Hecho **solo con Python estándar**: no hay que instalar ninguna librería.
 
@@ -18,11 +19,12 @@ Panel interactivo de datos económicos oficiales de **España frente a Europa**,
 2. [Qué incluye](#qué-incluye)
 3. [Fuentes y series](#fuentes-y-series)
 4. [Laboratorio econométrico](#laboratorio-econométrico)
-5. [Cómo está construido](#cómo-está-construido)
-6. [Tests](#tests)
-7. [Actualización automática con GitHub Actions](#actualización-automática-con-github-actions)
-8. [Decisiones técnicas y limitaciones](#decisiones-técnicas-y-limitaciones)
-9. [Uso de los datos y cómo citarlos](#uso-de-los-datos-y-cómo-citarlos)
+5. [Centro de investigación](#centro-de-investigación)
+6. [Cómo está construido](#cómo-está-construido)
+7. [Tests](#tests)
+8. [Actualización automática con GitHub Actions](#actualización-automática-con-github-actions)
+9. [Decisiones técnicas y limitaciones](#decisiones-técnicas-y-limitaciones)
+10. [Uso de los datos y cómo citarlos](#uso-de-los-datos-y-cómo-citarlos)
 
 ---
 
@@ -46,7 +48,7 @@ Otros comandos útiles:
 |---|---|
 | `python scripts/actualizar_datos.py` | Descarga todos los datos sin abrir la web y muestra un resumen por fuente. |
 | `python scripts/ejemplo_laboratorio.py` | Ejemplo completo de análisis con datos reales y Excel final. |
-| `python -m unittest -v` | Ejecuta los 52 tests. |
+| `python -m unittest -v` | Ejecuta los 68 tests. |
 
 ---
 
@@ -154,6 +156,51 @@ España, Alemania, Francia, Italia, Portugal y zona euro.
 
 ---
 
+## Centro de investigación
+
+Un centro de mando para la investigación propia, separado de los datos del panel pero enlazado con ellos.
+
+**Dos pilares y una taxonomía común.**
+
+| Pilar | Tipos de recurso | Fuentes |
+|---|---|---|
+| **Fuentes secundarias** | Dato oficial · Informe o publicación · Proyección oficial | Nacionales (INE, Banco de España, CNMV, Ministerio de Economía, Seguridad Social, SEPE) · Europeas (Eurostat, BCE, Comisión Europea) · Internacionales (FMI, Banco Mundial, OCDE, Fed, BIS, OMC) · Privadas (Bloomberg, Reuters, Yahoo Finance, BlackRock, Vanguard, Moody's, S&P, Fitch) |
+| **Producción propia** | Marco teórico · Análisis empírico · Predicción propia | Elaboración propia |
+
+Cada recurso se clasifica en una o varias **categorías temáticas** (Macroeconomía, Mercados financieros,
+Finanzas corporativas, Sectores estratégicos, Riesgo y regulación, cada una con sus subcategorías), lleva
+**etiquetas** libres y se puede **vincular** con otros («usa datos de», «se basa en», «actualiza»,
+«contradice», «complementa»). Un dato oficial puede enlazarse a una serie del panel: entonces muestra
+siempre el último valor publicado.
+
+**Páginas.**
+
+| Página | Contenido |
+|---|---|
+| **Centro de mando** (tecla `9`) | Buscador, volumen de recursos por categoría, últimas fuentes oficiales con su dato en vivo, predicciones activas, fichas y sincronización con Obsidian. |
+| **Biblioteca de fuentes** (tecla `0`) | Búsqueda instantánea (texto completo, sin importar tildes) con filtros combinables por origen, tipo de contenido, tipo de recurso, fuente, categoría, fechas y etiquetas; cada filtro dice cuántos resultados daría. Detalle en un panel lateral, editor de recursos (`N`) y vínculos. |
+| **Fichas de investigación** | Cada ficha responde a una pregunta y reúne, en pantalla dividida (pestañas en el móvil), los **datos oficiales**, el **desarrollo teórico** y las **predicciones y conclusiones**, con minigráficos de las series y la predicción dibujada sobre el dato real. «Copiar bibliografía» copia todas las referencias APA ordenadas. |
+
+**Citas al portapapeles.** Cada recurso tiene un botón **❝ Citar** con tres formatos: **APA 7.ª**, **nota al pie**
+y **dato + fuente** (por ejemplo, «IPC general (variación anual), España: 4,9 % (oct 2026). Fuente: Instituto
+Nacional de Estadística. (2026)…»), listos para pegar en Word.
+
+**Obsidian.** El botón **Sincronizar con Obsidian** escribe cada recurso como una nota en
+`<tu bóveda>/Observatorio/` con sus propiedades (tipo, fuente, categorías, etiquetas, fecha, dato, cita), enlaces
+`[[…]]` entre recursos relacionados (para verlos en el grafo), una nota por ficha, una nota de inicio y una vista
+de **Bases** (`Observatorio.base`) con tablas de recursos, predicciones y fuentes. Funciona en los dos sentidos:
+si editas el resumen, el texto, las etiquetas o las propiedades de una nota en Obsidian, o creas una nota nueva
+dentro de `Observatorio/Análisis propios`, al sincronizar se guarda en el panel (gana la versión más reciente).
+La carpeta de la bóveda se elige en el propio centro de mando.
+
+**Ejemplos incluidos.** La primera vez se cargan 13 recursos y 3 fichas: datos oficiales enlazados a las series
+del panel (IPC, paro, euríbor, deuda y bono a 10 años), las proyecciones del BCE de septiembre de 2026 y del
+Banco de España de octubre de 2026 (cifras copiadas de sus publicaciones), marcos teóricos (DCF, regla de Taylor,
+curva de Phillips) y dos predicciones propias marcadas como **ejemplos ilustrativos** (no son previsiones reales
+ni recomendaciones de inversión).
+
+---
+
 ## Cómo está construido
 
 ```
@@ -163,6 +210,7 @@ web/                        La web (HTML, CSS y JavaScript sin compilar; gráfic
   js/app.js                 Barra lateral, navegación y actualización
   js/paginas/*.js           Una página por archivo
   js/academico.js           Textos del modo explicación académica
+  js/investigacion.js       Piezas del centro de investigación (citas, panel lateral, editor, Markdown)
 src/
   config.py                 Catálogo de indicadores y códigos oficiales
   connectors/               INE, Eurostat y BCE → un mismo esquema de datos
@@ -170,8 +218,9 @@ src/
   etl/pipeline.py           Descarga en paralelo y registro del estado de cada fuente
   econometrics/             Matrices, distribuciones, series temporales, regresión, correlaciones
   reporting/                Creación de Excel (.xlsx) y citas APA
+  research/                 Centro de investigación: taxonomía, base de datos y buscador, citas, ejemplos y Obsidian
 scripts/                    Actualizar datos y ejemplo de laboratorio
-tests/                      52 tests automáticos
+tests/                      68 tests automáticos
 .github/workflows/          Tests y actualización diaria en GitHub Actions
 ```
 
@@ -190,6 +239,12 @@ tests/                      52 tests automáticos
 | POST | `/api/actualizar` | Lanza la descarga en segundo plano |
 | POST | `/api/lab/ols`, `/api/lab/hp`, `/api/lab/ccf`, `/api/lab/dispersion` | Cálculos del laboratorio |
 | POST | `/api/lab/exportar` | Excel de la regresión |
+| GET | `/api/inv/resumen`, `/api/inv/taxonomia`, `/api/inv/fichas` | Centro de mando, taxonomía y fichas |
+| GET | `/api/inv/buscar?q=…&organismos=…&tipos=…&naturalezas=…&categorias=…&etiquetas=…&ambitos=…&pilar=…&desde=…&hasta=…` | Resultados y recuentos por filtro |
+| GET | `/api/inv/recurso?id=…`, `/api/inv/ficha?id=…` | Un recurso (con citas y vínculos) o una ficha (en tres columnas) |
+| POST | `/api/inv/recurso`, `/api/inv/recurso/eliminar`, `/api/inv/vincular`, `/api/inv/desvincular` | Crear, editar, borrar y vincular recursos |
+| POST | `/api/inv/ficha`, `/api/inv/ficha/anadir`, `/api/inv/ficha/quitar`, `/api/inv/ficha/eliminar` | Gestionar fichas |
+| GET/POST | `/api/inv/obsidian`, `/api/inv/obsidian/ruta`, `/api/inv/obsidian/sincronizar` | Estado, carpeta y sincronización con Obsidian |
 
 ---
 
@@ -199,7 +254,7 @@ tests/                      52 tests automáticos
 python -m unittest -v
 ```
 
-52 tests que no necesitan internet:
+68 tests que no necesitan internet:
 
 - **Exactitud econométrica:** la regresión reproduce los resultados publicados del **cuarteto de Anscombe**
   (coeficientes, errores, t, p, R², F, AIC y BIC); los p-valores coinciden con las **tablas de la t y la F**;
@@ -211,6 +266,7 @@ python -m unittest -v
 - **Base de datos y preparación:** filtros, actualización de datos repetidos, semáforo, mezcla de frecuencias.
 - **API de punta a punta:** sobre una base de datos temporal, incluidos los mensajes de error.
 - **Excel y citas:** el .xlsx es válido y la cita APA tiene el formato correcto.
+- **Centro de investigación:** buscador (tildes, prefijos, relevancia), filtros combinados y recuentos, citas APA y notas al pie, validación, vínculos, fichas, y la sincronización con Obsidian en los dos sentidos (propiedades, notas nuevas, renombrados y recursos borrados) sobre una bóveda temporal.
 - **Catálogo:** identificadores únicos, campos obligatorios y tramos de Eurostat sin solapes (útil al añadir series).
 
 ---

@@ -10,7 +10,9 @@ import servidor
 from tests.base_temporal import ConBaseTemporal
 
 
-class API(ConBaseTemporal):
+class ServidorDePrueba(ConBaseTemporal):
+    """Arranca el servidor en un puerto libre sobre la base temporal (sin tests propios: se hereda)."""
+
     def setUp(self):
         super().setUp()
         self.srv = servidor.ThreadingHTTPServer(("127.0.0.1", 0), servidor.Manejador)
@@ -37,6 +39,8 @@ class API(ConBaseTemporal):
         with e.exception as respuesta:
             return respuesta.code, json.loads(respuesta.read())
 
+
+class API(ServidorDePrueba):
     def test_pagina_principal(self):
         with urllib.request.urlopen(self.base + "/", timeout=30) as r:
             self.assertIn("Observatorio económico", r.read().decode("utf-8"))

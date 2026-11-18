@@ -27,6 +27,7 @@ from src.econometrics import correlations, regression, time_series
 from src.econometrics.dataset import Variable, descriptivos, preparar
 from src.etl import pipeline, storage
 from src.reporting import exporter
+from src.research import almacen, obsidian
 
 WEB = Path(__file__).resolve().parent / "web"
 PUERTO = 8501
@@ -258,8 +259,71 @@ def api_dispersion(c):
     return {"x": nx, "y": ny, "puntos": puntos, "rectas": rectas}
 
 
-RUTAS_GET = {"catalogo": api_catalogo, "series": api_series, "estado": api_estado, "resumen": api_resumen}
-RUTAS_POST = {"lab/hp": api_hp, "lab/ccf": api_ccf, "lab/ols": api_ols, "lab/dispersion": api_dispersion}
+# ----------------------------------------------------------------------------- Centro de investigación
+
+def _lista(q: dict, clave: str) -> list[str]:
+    return [v for v in q.get(clave, "").split(",") if v]
+
+
+def _con_almacen(funcion):
+    """Abre la base de investigación, ejecuta la función y la cierra."""
+    def envoltura(datos):
+        with almacen.abrir() as con:
+            return funcion(con, datos)
+    return envoltura
+
+
+def inv_buscar(con, q):
+    return almacen.buscar(
+        con, q=q.get("q", ""), organismos=_lista(q, "organismos"), tipos=_lista(q, "tipos"),
+        naturalezas=_lista(q, "naturalezas"), categorias=_lista(q, "categorias"), etiquetas=_lista(q, "etiquetas"),
+        ambitos=_lista(q, "ambitos"), pilar=q.get("pilar") or None, desde=q.get("desde") or None, hasta=q.get("hasta") or None)
+
+
+def inv_guardar_recurso(con, c):
+    rid = almacen.guardar_recurso(con, {k: v for k, v in c.items() if k in (*almacen.CAMPOS, "id", "categorias", "etiquetas")})
+    return almacen.obtener_recurso(con, rid)
+
+
+def inv_guardar_ficha(con, c):
+    return almacen.obtener_ficha(con, almacen.guardar_ficha(con, c))
+
+
+def inv_ruta_obsidian(con, c):
+    ruta = Path(str(c.get("ruta", "")).strip().strip('"'))
+    if not ruta.is_dir():
+        raise ValueError(f"No existe la carpeta: {ruta}")
+    almacen.guardar_ajuste(con, "boveda", str(ruta))
+    return obsidian.estado(con)
+
+
+INV_GET = {
+    "inv/resumen": lambda con, q: almacen.resumen(con),
+    "inv/taxonomia": lambda con, q: almacen.taxonomia_completa(con),
+    "inv/buscar": inv_buscar,
+    "inv/recurso": lambda con, q: almacen.obtener_recurso(con, q.get("id", "")),
+    "inv/fichas": lambda con, q: {"fichas": almacen.listar_fichas(con)},
+    "inv/ficha": lambda con, q: almacen.obtener_ficha(con, q.get("id", "")),
+    "inv/obsidian": lambda con, q: obsidian.estado(con),
+}
+INV_POST = {
+    "inv/recurso": inv_guardar_recurso,
+    "inv/recurso/eliminar": lambda con, c: almacen.eliminar_recurso(con, c["id"]) or {"ok": True},
+    "inv/vincular": lambda con, c: almacen.vincular(con, c["origen"], c["destino"], c["tipo"]) or almacen.obtener_recurso(con, c["origen"]),
+    "inv/desvincular": lambda con, c: almacen.desvincular(con, c["origen"], c["destino"], c["tipo"]) or almacen.obtener_recurso(con, c["origen"]),
+    "inv/ficha": inv_guardar_ficha,
+    "inv/ficha/eliminar": lambda con, c: almacen.eliminar_ficha(con, c["id"]) or {"ok": True},
+    "inv/ficha/anadir": lambda con, c: almacen.anadir_a_ficha(con, c["ficha"], c["recurso"]) or almacen.obtener_ficha(con, c["ficha"]),
+    "inv/ficha/quitar": lambda con, c: almacen.quitar_de_ficha(con, c["ficha"], c["recurso"]) or almacen.obtener_ficha(con, c["ficha"]),
+    "inv/obsidian/sincronizar": lambda con, c: obsidian.sincronizar(con),
+    "inv/obsidian/ruta": inv_ruta_obsidian,
+}
+
+
+RUTAS_GET = {"catalogo": api_catalogo, "series": api_series, "estado": api_estado, "resumen": api_resumen,
+             **{k: _con_almacen(f) for k, f in INV_GET.items()}}
+RUTAS_POST = {"lab/hp": api_hp, "lab/ccf": api_ccf, "lab/ols": api_ols, "lab/dispersion": api_dispersion,
+              **{k: _con_almacen(f) for k, f in INV_POST.items()}}
 
 
 # ----------------------------------------------------------------------------- Servidor HTTP
