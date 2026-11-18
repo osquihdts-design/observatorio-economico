@@ -120,7 +120,7 @@ function seccionCCF(ctx) {
       { x: c.map((v) => v.retardo), y: c.map((v) => -v.banda), type: 'scatter', mode: 'lines', showlegend: false, line: { color: '#C8102E', dash: 'dash', width: 1.4 }, hoverinfo: 'skip' },
     ], {
       hovermode: 'closest',
-      xaxis: { ...base.xaxis, title: { text: `Retardo k (${periodo}s). k > 0: X se adelanta a Y`, font: { size: 12 } } },
+      xaxis: { ...base.xaxis, title: { text: `Retardo k (${periodo === "mes" ? "meses" : "trimestres"}). k > 0: X se adelanta a Y`, font: { size: 12 } } },
       yaxis: { ...base.yaxis, title: { text: 'r', font: { size: 12 } }, range: [-1, 1] },
     });
     const adelantos = c.filter((v) => v.retardo > 0);

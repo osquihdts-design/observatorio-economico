@@ -103,10 +103,10 @@ export default {
       <div class="tabla-wrap"><table>
         <thead><tr><th>Indicador</th><th>País</th><th class="num">Último</th><th class="num">Anterior</th><th>Periodo</th><th>Fuente</th><th>Serie</th><th>Actualizado</th></tr></thead>
         <tbody>${filas.map((f) => `<tr>
-          <td>${f.nombre}</td><td>${f.pais_nombre}</td>
+          <td>${f.nombre}</td><td class="nw">${f.pais_nombre}</td>
           <td class="num"><strong>${fmt(f.valor, f.unidad === '€' ? 0 : 2)}</strong> ${f.unidad === '%' ? '%' : f.unidad === '€' ? '€' : ''}</td>
           <td class="num">${f.anterior == null ? '—' : fmt(f.anterior, f.unidad === '€' ? 0 : 2)}</td>
-          <td>${fechaTexto(f.fecha, f.frecuencia)}</td><td><span class="chip ${f.fuente}">${f.fuente === 'EUROSTAT' ? 'Eurostat' : f.fuente}</span></td>
+          <td class="nw">${fechaTexto(f.fecha, f.frecuencia)}</td><td><span class="chip ${f.fuente}">${f.fuente === 'EUROSTAT' ? 'Eurostat' : f.fuente}</span></td>
           <td><code>${f.codigo}</code></td><td>${new Date(f.actualizado).toLocaleDateString('es-ES')}</td></tr>`).join('')}</tbody>
       </table></div>`;
     tabla.querySelector('[data-csv]').addEventListener('click', () => descargarCSV('resumen_indicadores.csv',

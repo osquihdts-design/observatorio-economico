@@ -66,7 +66,7 @@ export function linea(nombre, puntos, color, opciones = {}) {
 export function referencia(y, texto, color = '#6C757D') {
   return {
     shapes: [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: y, y1: y, line: { dash: 'dot', color, width: 1.5 } }],
-    annotations: [{ xref: 'paper', x: 1, y, text: texto, showarrow: false, xanchor: 'right', yanchor: 'bottom', font: { size: 11.5, color } }],
+    annotations: [{ xref: 'paper', x: 1, y, text: texto, showarrow: false, xanchor: 'right', yanchor: 'bottom', bgcolor: 'rgba(255,255,255,0.85)', font: { size: 11.5, color } }],
   };
 }
 
