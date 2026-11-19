@@ -47,7 +47,8 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
-- GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC, datos como artifact). Acciones en v7 (Node 24).
+- GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC y en cada push a main: datos como artifact + web en GitHub Pages). Acciones en v7 (Node 24); Pages: configure-pages@v6, upload-pages-artifact@v5, deploy-pages@v5.
+- Web pública: https://osquihdts-design.github.io/observatorio-economico/ — `scripts/publicar_web.py` genera `_site/` (web + JSON de catálogo, estado, resumen y series; `--ver` la sirve en :8600). `api.js` detecta `<meta name="observatorio-modo" content="estatico">`: sin POST (la curva de Phillips se calcula en JS), sin centro de investigación (es privado) ni botón de actualizar; el laboratorio muestra cómo usarlo en local.
 
 ## Ideas siguientes
 - Más indicadores (salarios, deuda pública, prima de riesgo, IPC por grupos, datos del INE por comunidades).
