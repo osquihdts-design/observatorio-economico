@@ -3,6 +3,7 @@
 import { series } from '../api.js';
 import { COLORES, CONFIG, descargarCSV, dibujar, fechaTexto, fmt, layout, linea, tarjeta } from '../graficos.js';
 import { avisar, sinMovimiento } from '../efectos.js';
+import { NOTA_PREVISIONES, trazasPrevision } from '../previsiones.js';
 
 // Eurostat usa códigos de 2 letras (Grecia = EL); el mapa de Plotly necesita ISO de 3 letras.
 const ISO3 = {
@@ -468,7 +469,7 @@ export default {
     });
     hist.grafico.style.height = '340px';
 
-    function pintarHistoria() {
+    async function pintarHistoria() {
       const trazas = [];
       const nombres = {};
       const fuera = [];
@@ -487,7 +488,9 @@ export default {
         shapes.push({ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: ficha.referencia, y1: ficha.referencia, line: { color: '#94a3b8', width: 1.2, dash: 'dash' } });
         annotations.push({ xref: 'paper', x: 0, y: ficha.referencia, text: ficha.refTexto, showarrow: false, xanchor: 'left', yanchor: 'bottom', font: { size: 11, color: '#94a3b8' } });
       }
-      dibujar(hist.grafico, trazas, {
+      const previstas = await trazasPrevision(id, ['ES', 'EA', foco], sufijo);
+      hist.el.querySelector('.sub').textContent = `Pulsa un país en el mapa o en la clasificación. Siempre se compara con España y la zona euro.${previstas.length ? ` ${NOTA_PREVISIONES}` : ''}`;
+      dibujar(hist.grafico, [...trazas, ...previstas], {
         shapes, annotations,
         yaxis: { ...base.yaxis, title: { text: ficha.unidad, font: { size: 12 } }, ticksuffix: sufijo },
       });

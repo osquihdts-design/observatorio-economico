@@ -33,6 +33,10 @@ def main() -> int:
         print(f"{icono} {fuente:<9} {estado['mensaje']}  ({resultado.filas[fuente]} datos)")
         for error in resultado.errores.get(fuente, []):
             print(f"     ✗ {error}")
+    if isinstance(resultado.calendario, int):
+        print(f"📅 Calendario: {resultado.calendario} publicaciones de INE y BCE")
+    else:
+        print(f"🟠 {resultado.calendario}")
 
     print(f"\n{'Fuente':<9} {'Indicador':<24} {'País':<4} {'Datos':>6}  {'Desde':<10}  {'Hasta':<10}  Último")
     for r in storage.resumen():

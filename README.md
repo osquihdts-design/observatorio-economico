@@ -52,7 +52,7 @@ Otros comandos útiles:
 |---|---|
 | `python scripts/actualizar_datos.py` | Descarga todos los datos sin abrir la web y muestra un resumen por fuente. |
 | `python scripts/ejemplo_laboratorio.py` | Ejemplo completo de análisis con datos reales y Excel final. |
-| `python -m unittest -v` | Ejecuta los 68 tests. |
+| `python -m unittest -v` | Ejecuta los 74 tests. |
 
 ---
 
@@ -77,6 +77,12 @@ Otros comandos útiles:
 - **Recesiones y acontecimientos** en todos los gráficos de series: bandas grises con las recesiones de la zona euro según el comité de
   fechado del CEPR-EABCN (2008T2–2009T2, 2011T4–2013T1 y 2020T1–2020T2) y líneas en fechas clave (Lehman, «Whatever it takes», QE del BCE,
   COVID-19, invasión de Ucrania, primera subida de tipos de 2022). Se pueden ocultar desde la barra lateral.
+- **Previsiones oficiales sobre los gráficos** (rombos con línea punteada, media anual): proyecciones del BCE para la zona euro
+  (septiembre de 2026) y del Banco de España para España (octubre de 2026) de inflación, inflación subyacente, PIB y paro.
+  Están en [`src/previsiones.py`](src/previsiones.py) con su enlace; al salir una edición nueva se añade allí. Se pueden ocultar.
+- **Próximos datos** en la portada: calendario de publicaciones del INE (IPC, IPC adelantado, PIB trimestral, EPA, vivienda,
+  coste laboral) y decisiones de tipos del BCE, descargado cada día de sus calendarios oficiales, con enlace para
+  suscribirse al calendario del INE en el móvil.
 - **Ticker** con el último dato y la variación de 15 indicadores clave; cada elemento lleva a su página.
 - **⤢ Ampliar** en cada gráfico: pantalla completa con zoom (rueda del ratón) y barra para moverse en el tiempo.
 - Animaciones (números que cuentan, líneas que se dibujan, tarjetas con inclinación 3D). Se desactivan si el sistema pide «reducir movimiento».
@@ -230,7 +236,7 @@ src/
   reporting/                Creación de Excel (.xlsx) y citas APA
   research/                 Centro de investigación: taxonomía, base de datos y buscador, citas, ejemplos y Obsidian
 scripts/                    Actualizar datos y ejemplo de laboratorio
-tests/                      68 tests automáticos
+tests/                      74 tests automáticos
 .github/workflows/          Tests y actualización diaria en GitHub Actions
 ```
 
@@ -246,6 +252,8 @@ tests/                      68 tests automáticos
 | GET | `/api/series?ids=…&paises=…&desde=…&hasta=…` | Series filtradas |
 | GET | `/api/estado` | Semáforo de fuentes y progreso de la actualización |
 | GET | `/api/resumen` | Último y penúltimo dato de cada serie |
+| GET | `/api/previsiones` | Previsiones oficiales vigentes (la más reciente de cada organismo) |
+| GET | `/api/calendario?desde=…` | Próximas publicaciones del INE y decisiones del BCE |
 | POST | `/api/actualizar` | Lanza la descarga en segundo plano |
 | POST | `/api/lab/ols`, `/api/lab/hp`, `/api/lab/ccf`, `/api/lab/dispersion` | Cálculos del laboratorio |
 | POST | `/api/lab/exportar` | Excel de la regresión |
@@ -264,7 +272,7 @@ tests/                      68 tests automáticos
 python -m unittest -v
 ```
 
-68 tests que no necesitan internet:
+74 tests que no necesitan internet:
 
 - **Exactitud econométrica:** la regresión reproduce los resultados publicados del **cuarteto de Anscombe**
   (coeficientes, errores, t, p, R², F, AIC y BIC); los p-valores coinciden con las **tablas de la t y la F**;

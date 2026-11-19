@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from src import config
+from src import config, previsiones
 from src.econometrics import correlations, regression, time_series
 from src.econometrics.dataset import Variable, descriptivos, preparar
 from src.etl import pipeline, storage
@@ -180,6 +180,16 @@ def api_series(q):
     return resultado
 
 
+def api_previsiones(_q):
+    return {"previsiones": previsiones.vigentes()}
+
+
+def api_calendario(q):
+    """Próximas publicaciones (desde hoy, o desde la fecha indicada)."""
+    desde = q.get("desde") or datetime.now(timezone.utc).date().isoformat()
+    return {"eventos": storage.leer_calendario(desde)}
+
+
 def api_estado(_q):
     vacia = not storage.disponibles()
     return {"fuentes": storage.estado_fuentes(), "actualizacion": ACTUALIZACION.estado, "vacia": vacia}
@@ -321,6 +331,7 @@ INV_POST = {
 
 
 RUTAS_GET = {"catalogo": api_catalogo, "series": api_series, "estado": api_estado, "resumen": api_resumen,
+             "previsiones": api_previsiones, "calendario": api_calendario,
              **{k: _con_almacen(f) for k, f in INV_GET.items()}}
 RUTAS_POST = {"lab/hp": api_hp, "lab/ccf": api_ccf, "lab/ols": api_ols, "lab/dispersion": api_dispersion,
               **{k: _con_almacen(f) for k, f in INV_POST.items()}}
