@@ -15,6 +15,10 @@ import laboratorio from './paginas/laboratorio.js';
 import centro from './paginas/centro.js';
 import biblioteca from './paginas/biblioteca.js';
 import fichas from './paginas/fichas.js';
+import guias, { GUIAS } from './paginas/guias.js';
+import informe from './paginas/informe.js';
+import insertar from './paginas/insertar.js';
+import sobre from './paginas/sobre.js';
 import { cargarTaxonomia, editarRecurso, tax } from './investigacion.js';
 import { ponerPrevisiones } from './previsiones.js';
 
@@ -37,19 +41,21 @@ python servidor.py</pre>
       </section>`;
   },
 };
+const APRENDER = { guias, informe, insertar, sobre };
 const PAGINAS = ESTATICO
-  ? { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio: laboratorioPublico }
-  : { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio, investigacion: centro, biblioteca, fichas };
+  ? { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio: laboratorioPublico, ...APRENDER }
+  : { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio, investigacion: centro, biblioteca, fichas, ...APRENDER };
 const ORDEN = Object.keys(PAGINAS);
 if (ESTATICO) {
   // Sin servidor: fuera el centro de investigación (es personal) y el botón de actualizar (se actualiza solo cada día).
-  document.querySelectorAll('.nav-grupo, #nav [data-page="investigacion"], #nav [data-page="biblioteca"], #nav [data-page="fichas"]').forEach((el) => el.remove());
+  document.querySelectorAll('.nav-grupo:not(.nav-publico), #nav [data-page="investigacion"], #nav [data-page="biblioteca"], #nav [data-page="fichas"]').forEach((el) => el.remove());
+  document.querySelectorAll('#nav a i').forEach((i, k) => { i.textContent = String(k + 1).padStart(2, '0'); }); // numeración seguida
   const boton = document.getElementById('btn-actualizar');
   boton.insertAdjacentHTML('afterend', '<p class="nota-publica">Versión pública: los datos se descargan solos cada mañana de INE, Eurostat y BCE.</p>');
   boton.remove();
 }
 const ICONOS = { portada: '◈', mapa: '🗺', inflacion: '%', laboral: '⚒', monetaria: '€', vivienda: '⌂', finanzas: '⚖', laboratorio: '∑',
-  investigacion: '◎', biblioteca: '▤', fichas: '◧' };
+  investigacion: '◎', biblioteca: '▤', fichas: '◧', guias: '✎', informe: '⎙', insertar: '⧉', sobre: 'ⓘ' };
 const TECLA = (i) => (i < 9 ? `Tecla ${i + 1}` : i === 9 ? 'Tecla 0' : '');
 const FIJOS = ['ES', 'EA'];
 
@@ -247,6 +253,10 @@ function comandos() {
   const add = (c) => lista.push({ orden: orden++, ...c });
   ORDEN.forEach((p, i) => add({ tipo: 'página', icono: ICONOS[p], titulo: PAGINAS[p].titulo, detalle: TECLA(i),
     claves: p, accion: () => { location.hash = `#/${p}`; } }));
+  for (const g of GUIAS) {
+    add({ tipo: 'guía', icono: '✎', titulo: g.titulo, detalle: `${g.nivel} · ${g.minutos} min`, claves: `guia tutorial ${g.resumen}`,
+      accion: () => { location.hash = `#/guias/${g.id}`; } });
+  }
   if (!ESTATICO) {
     add({ tipo: 'investigación', icono: '+', titulo: 'Nuevo recurso de investigación', detalle: 'Dato, informe, teoría o predicción',
       claves: 'crear anadir recurso nota', accion: () => editarRecurso(null, (r) => { location.hash = `#/biblioteca/${r.id}`; }) });

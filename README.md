@@ -52,7 +52,7 @@ Otros comandos útiles:
 |---|---|
 | `python scripts/actualizar_datos.py` | Descarga todos los datos sin abrir la web y muestra un resumen por fuente. |
 | `python scripts/ejemplo_laboratorio.py` | Ejemplo completo de análisis con datos reales y Excel final. |
-| `python -m unittest -v` | Ejecuta los 74 tests. |
+| `python -m unittest -v` | Ejecuta los 75 tests. |
 
 ---
 
@@ -236,7 +236,7 @@ src/
   reporting/                Creación de Excel (.xlsx) y citas APA
   research/                 Centro de investigación: taxonomía, base de datos y buscador, citas, ejemplos y Obsidian
 scripts/                    Actualizar datos y ejemplo de laboratorio
-tests/                      74 tests automáticos
+tests/                      75 tests automáticos
 .github/workflows/          Tests y actualización diaria en GitHub Actions
 ```
 
@@ -272,7 +272,7 @@ tests/                      74 tests automáticos
 python -m unittest -v
 ```
 
-74 tests que no necesitan internet:
+75 tests que no necesitan internet:
 
 - **Exactitud econométrica:** la regresión reproduce los resultados publicados del **cuarteto de Anscombe**
   (coeficientes, errores, t, p, R², F, AIC y BIC); los p-valores coinciden con las **tablas de la t y la F**;
@@ -320,8 +320,26 @@ Los datos no se guardan en el repositorio (`data/processed/` está en `.gitignor
 
 ## Uso de los datos y cómo citarlos
 
-Los datos pertenecen a sus organismos (INE, Eurostat y Banco Central Europeo), que permiten reutilizarlos
-citando la fuente; conviene revisar las condiciones de cada uno antes de publicarlos.
+**Licencia:** los textos, gráficos, guías y datos elaborados se publican con licencia
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.es) (detalles en [`LICENCIA.md`](LICENCIA.md)).
+Los datos pertenecen a sus organismos: el [INE](https://ine.es/dyngs/AYU/es/index.htm?cid=125) (CC BY 4.0),
+[Eurostat](https://ec.europa.eu/eurostat/help/copyright-notice) y el
+[BCE](https://www.ecb.europa.eu/stats/ecb_statistics/governance_and_quality_framework/html/usage_policy.en.html)
+permiten reutilizarlos citando la fuente e indicando si se han transformado. Ninguno de ellos respalda este proyecto.
+
+**Cita de la web (APA 7.ª):**
+
+> Observatorio económico. (2026). *Observatorio económico: España frente a Europa* [Aplicación web].
+> https://osquihdts-design.github.io/observatorio-economico/
+
+**Herramientas para trabajos** (también en la web pública):
+
+- **Guías** (`#/guias`): cómo analizar la inflación para un trabajo, cómo hacer una regresión para el TFG y qué indicador usar para cada pregunta.
+- **Informe en PDF** (`#/informe`): portada, resumen, comentario automático de cada indicador, gráficos y bibliografía en APA;
+  se guarda con «Imprimir → Guardar como PDF».
+- **Insertar gráficos** (`#/insertar`): genera el código `<iframe>` de `embed.html?i=paro&p=ES,EA&d=2015&t=claro&prev=1`
+  (indicador, países, desde, tema, previsiones), que se actualiza solo cada día.
+- **Sobre el proyecto** (`#/sobre`): fuentes, metodología, licencia, cómo citar y registro de cambios.
 
 La pestaña `Metadatos_Fuentes` del Excel exportado incluye la cita APA 7.ª de cada serie usada, por ejemplo:
 
