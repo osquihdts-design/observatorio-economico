@@ -70,7 +70,13 @@ Otros comandos útiles:
 ### Interacción
 
 - **Paleta de comandos** (`Ctrl+K` o `/`): busca páginas, indicadores, países, periodos y acciones sin importar tildes.
-- **Atajos:** `1`–`8` cambian de página · `T` tema · `A` modo académico · `U` actualizar datos · `?` lista de atajos · `Esc` cerrar.
+- **Atajos:** `1`–`9` y `0` cambian de página · `T` tema · `A` modo académico · `U` actualizar datos · `L` copiar enlace · `?` lista de atajos · `Esc` cerrar.
+- **Enlaces para compartir:** la dirección guarda lo que estás viendo (página, países, periodo y, en el mapa, indicador, fecha, país elegido y vista),
+  por ejemplo `#/mapa/paro?p=DE&r=10&v=comparar&f=2026-09-01&f2=2013-04-01`. El botón **Compartir** (o `L`) la copia; desde tu ordenador
+  copia la de la web pública, para que le sirva a cualquiera.
+- **Recesiones y acontecimientos** en todos los gráficos de series: bandas grises con las recesiones de la zona euro según el comité de
+  fechado del CEPR-EABCN (2008T2–2009T2, 2011T4–2013T1 y 2020T1–2020T2) y líneas en fechas clave (Lehman, «Whatever it takes», QE del BCE,
+  COVID-19, invasión de Ucrania, primera subida de tipos de 2022). Se pueden ocultar desde la barra lateral.
 - **Ticker** con el último dato y la variación de 15 indicadores clave; cada elemento lleva a su página.
 - **⤢ Ampliar** en cada gráfico: pantalla completa con zoom (rueda del ratón) y barra para moverse en el tiempo.
 - Animaciones (números que cuentan, líneas que se dibujan, tarjetas con inclinación 3D). Se desactivan si el sistema pide «reducir movimiento».
@@ -80,7 +86,7 @@ Otros comandos útiles:
 | Página | Contenido |
 |---|---|
 | **Portada** | Radar de posición europea (en qué lugar queda España entre los 27 en inflación, paro, crecimiento, deuda, déficit y coste de la deuda) · 5 tarjetas (inflación, paro, PIB, euríbor, vivienda) con último dato, variación con color contextual y minigráfico · divergencia España–zona euro · tabla de todos los indicadores que se puede ordenar y filtrar. |
-| **Mapa de Europa** | Mapa de coropletas de los 27 países para cualquier indicador europeo, con reproductor (▶, línea de tiempo y velocidad) desde el año 2000, carrera de barras sincronizada, puesto de España e historia del país que se pulse. Atajos: `Espacio`, `←` `→`. |
+| **Mapa de Europa** | Mapa de coropletas de los 27 países para cualquier indicador europeo, con reproductor (▶, línea de tiempo y velocidad) desde el año 2000, carrera de barras sincronizada, puesto de España e historia del país que se pulse. Ficha de cada indicador (unidad, qué mide, cómo leerlo y línea de referencia). Tres vistas: **mapa**, **comparar dos fechas** (dos mapas con la misma escala y resumen de cambios) y **tabla** ordenable con el cambio en un año y desde la fecha de comparación. Atajos: `Espacio`, `←` `→`. |
 | **Inflación y precios** | IPC general y subyacente (INE) frente al objetivo del 2 % del BCE · comparativa europea del IAPC · calculadora de poder adquisitivo entre dos fechas. |
 | **Mercado laboral** | Paro general y juvenil por países · curva de Phillips empírica con una recta por subperiodo (antes de la COVID, COVID, ciclo restrictivo del BCE y bajadas de tipos). |
 | **Política monetaria** | Corredor de tipos del BCE con el euríbor · transmisión del euríbor a las nuevas hipotecas en España y la zona euro · crecimiento de M3. |
