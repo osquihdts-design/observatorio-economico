@@ -13,9 +13,76 @@ const ISO3 = {
 const UE = Object.keys(ISO3);
 const DE_ISO3 = Object.fromEntries(Object.entries(ISO3).map(([a, b]) => [b, a]));
 
-// Escala de color «de frío a caliente». En los indicadores donde subir es bueno (PIB, saldo) se invierte.
-const ESCALA = ['#1e3a8a', '#0891b2', '#22d3ee', '#a3e635', '#facc15', '#f97316', '#e11d48'];
-const BUENO_SI_SUBE = new Set(['pib_var', 'saldo_publico']);
+// Escalas de color según cómo se lee cada indicador.
+const ESCALAS = {
+  malo: ['#1e3a8a', '#0891b2', '#22d3ee', '#a3e635', '#facc15', '#f97316', '#e11d48'],   // alto = peor (rojo)
+  bueno: ['#e11d48', '#f97316', '#facc15', '#a3e635', '#22d3ee', '#0891b2', '#1e3a8a'],  // alto = mejor (azul)
+  objetivo: ['#2563eb', '#38bdf8', '#34d399', '#f59e0b', '#e11d48'],                     // verde en el objetivo
+  cambio: ['#2563eb', '#60a5fa', '#94a3b8', '#fb923c', '#ea580c'],                       // baja (azul) · sube (naranja)
+  nivel: ['#312e81', '#6d28d9', '#a855f7', '#ec4899', '#f59e0b', '#fde047'],             // solo intensidad
+};
+
+// Ficha de cada indicador: unidad, qué mide, cómo leerlo, colores y línea de referencia.
+// `centro` centra la escala de color en ese valor (el objetivo o el cero) para que se lea a simple vista.
+const FICHAS = {
+  iapc_general: {
+    unidad: '% de variación anual', corta: '%', escala: 'objetivo', centro: 2, referencia: 2, refTexto: 'Objetivo del BCE (2 %)',
+    que: 'Cuánto han subido los precios de consumo respecto al mismo mes del año anterior. Es el índice armonizado (IAPC), que se calcula igual en todos los países para poder compararlos.',
+    leer: 'El BCE busca una inflación del 2 %. Verde = cerca del objetivo; naranja y rojo = inflación alta; azul = muy baja o negativa (deflación).',
+  },
+  iapc_subyacente: {
+    unidad: '% de variación anual', corta: '%', escala: 'objetivo', centro: 2, referencia: 2, refTexto: 'Objetivo del BCE (2 %)',
+    que: 'Inflación sin energía ni alimentos (los precios más volátiles). Muestra la tendencia de fondo de los precios.',
+    leer: 'Si la subyacente sigue alta cuando la general ya ha bajado, la inflación se ha «contagiado» al resto de la economía. Verde = cerca del 2 %.',
+  },
+  paro: {
+    unidad: '% de la población activa', corta: '%', escala: 'malo',
+    que: 'Porcentaje de personas que buscan empleo y no lo encuentran sobre el total de la población activa (las que trabajan o buscan trabajo). Mensual y desestacionalizada.',
+    leer: 'Cuanto más alto, peor. Rojo = más paro.',
+  },
+  paro_jovenes: {
+    unidad: '% de los activos menores de 25 años', corta: '%', escala: 'malo',
+    que: 'Tasa de paro de los menores de 25 años: parados jóvenes sobre los jóvenes que trabajan o buscan trabajo (no sobre todos los jóvenes, porque muchos estudian).',
+    leer: 'Cuanto más alto, peor. Rojo = más paro juvenil.',
+  },
+  precio_vivienda_indice: {
+    unidad: 'índice (2015 = 100)', corta: '', escala: 'nivel', referencia: 100, refTexto: 'Precio de 2015 (= 100)',
+    que: 'Evolución del precio de la vivienda (nueva y usada) tomando como referencia el año 2015. No son euros por metro cuadrado: es un índice.',
+    leer: '100 = el precio de 2015. 150 significa que la vivienda cuesta un 50 % más que en 2015; 90, un 10 % menos. Sirve para comparar cuánto ha subido en cada país, no qué país es más caro.',
+  },
+  precio_vivienda_var: {
+    unidad: '% de variación anual', corta: '%', escala: 'cambio', centro: 0, referencia: 0, refTexto: 'Sin cambios (0 %)',
+    que: 'Cuánto ha cambiado el precio de la vivienda respecto al mismo trimestre del año anterior.',
+    leer: 'Positivo (naranja) = la vivienda se encarece; negativo (azul) = se abarata.',
+  },
+  pib_var: {
+    unidad: '% de variación interanual', corta: '%', escala: 'bueno', referencia: 0, refTexto: 'Crecimiento cero',
+    que: 'Crecimiento de la economía: PIB en volumen (sin el efecto de los precios) respecto al mismo trimestre del año anterior.',
+    leer: 'Cuanto más alto, mejor (azul). Negativo = la economía se contrae; si dura dos trimestres seguidos se suele hablar de recesión.',
+  },
+  bono_10a: {
+    unidad: '% anual (rentabilidad)', corta: '%', escala: 'malo', dec: 2,
+    que: 'Interés que paga cada Estado al pedir prestado a 10 años (rentabilidad de su bono, media del mes).',
+    leer: 'Cuanto más alto, más le cuesta endeudarse y más riesgo ven los inversores. Estonia no tiene bonos a 10 años, por eso no aparece.',
+  },
+  deuda_publica: {
+    unidad: '% del PIB', corta: '%', escala: 'malo', referencia: 60, refTexto: 'Límite de Maastricht (60 %)',
+    que: 'Deuda bruta de todas las administraciones públicas (Estado, comunidades, ayuntamientos y Seguridad Social) dividida entre lo que produce el país en un año (PIB).',
+    leer: 'Las reglas europeas fijan un límite del 60 % del PIB. Más alto (rojo) = más endeudado.',
+  },
+  saldo_publico: {
+    unidad: '% del PIB', corta: '%', escala: 'bueno', centro: 0, referencia: -3, refTexto: 'Límite de déficit (−3 %)',
+    que: 'Ingresos menos gastos de las administraciones públicas, en porcentaje del PIB. Negativo = déficit; positivo = superávit.',
+    leer: 'Las reglas europeas fijan un déficit máximo del 3 % del PIB (−3). Más alto (azul) = cuentas más saneadas.',
+  },
+};
+const FRECUENCIA = { M: 'Mensual', Q: 'Trimestral', A: 'Anual' };
+
+/** Ficha por defecto para un indicador nuevo que aún no tenga la suya. */
+function fichaDe(info) {
+  const porcentaje = info.unidad.startsWith('%');
+  return FICHAS[info.id] || { unidad: info.unidad, corta: porcentaje ? '%' : '', escala: 'nivel', que: info.nota || info.nombre, leer: '' };
+}
 const VELOCIDADES = { '0,5×': 900, '1×': 420, '2×': 200, '4×': 90 };
 
 let limpiar = null; // se llama al salir de la página: para la animación y quita los atajos
@@ -67,10 +134,18 @@ export default {
     const fechas = [...new Set(Object.values(datos).flatMap((s) => s.map((p) => p[0])))].sort();
     const tabla = tablaPorFecha(datos, fechas);
     const todos = UE.flatMap((p) => (datos[p] || []).map((x) => x[1])).sort((a, b) => a - b);
-    const zmin = percentil(todos, 0.02), zmax = percentil(todos, 0.98);
-    const escala = BUENO_SI_SUBE.has(id) ? [...ESCALA].reverse() : ESCALA;
-    const sufijo = info.unidad.startsWith('%') ? ' %' : ` ${info.unidad}`;
-    const dec = /bono|euribor/.test(id) ? 2 : 1;
+    const ficha = fichaDe(info);
+    let zmin = percentil(todos, 0.02), zmax = percentil(todos, 0.98);
+    if (ficha.centro != null) { // escala simétrica alrededor del objetivo o del cero
+      const d = Math.max(ficha.centro - zmin, zmax - ficha.centro);
+      zmin = ficha.centro - d; zmax = ficha.centro + d;
+    }
+    const escala = ESCALAS[ficha.escala];
+    const sufijo = ficha.corta ? ` ${ficha.corta}` : '';
+    const dec = ficha.dec ?? 1;
+    // En los índices base 2015 = 100 se traduce a «cuánto ha cambiado desde 2015», que se entiende mejor.
+    const esIndice2015 = ficha.escala === 'nivel' && ficha.referencia === 100;
+    const conUnidad = (v) => `${fmt(v, dec)}${sufijo}${esIndice2015 ? ` (${v >= 100 ? '+' : '−'}${fmt(Math.abs(v - 100), 0)} % desde 2015)` : ''}`;
 
     // Por defecto, el último periodo en el que al menos 20 países tienen dato.
     let indice = fechas.length - 1;
@@ -90,6 +165,16 @@ export default {
           <select data-indicador aria-label="Indicador">${europeos.map((i) => `<option value="${i.id}" ${i.id === id ? 'selected' : ''}>${i.nombre}</option>`).join('')}</select>
           <span class="leyenda-mapa" data-resumen></span>
         </div>
+        <div class="ficha-indicador">
+          <div class="ficha-chips">
+            <span><b>Unidad</b>${ficha.unidad}</span>
+            <span><b>Frecuencia</b>${FRECUENCIA[info.frecuencia] || info.frecuencia}</span>
+            <span><b>Fuente</b>Eurostat</span>
+            ${ficha.referencia != null ? `<span class="ref"><b>Referencia</b>${ficha.refTexto}</span>` : ''}
+          </div>
+          <p><b>Qué mide.</b> ${ficha.que}</p>
+          ${ficha.leer ? `<p><b>Cómo leerlo.</b> ${ficha.leer}</p>` : ''}
+        </div>
         <div class="reproductor">
           <button class="boton-play" data-play aria-label="Reproducir"></button>
           <div class="fecha-grande" data-fecha></div>
@@ -98,10 +183,10 @@ export default {
         </div>
         <div class="mapa-layout" style="margin-top:14px">
           <div class="mapa" data-mapa></div>
-          <div><div class="carrera" data-carrera></div></div>
+          <div><p class="carrera-titulo">Clasificación de mayor a menor · en ${ficha.unidad}</p><div class="carrera" data-carrera></div></div>
         </div>
-        <p class="fuente-nota">Fuente: Eurostat (${info.nombre}). Colores fijos para todo el periodo, para que se puedan comparar los años.
-          ${BUENO_SI_SUBE.has(id) ? 'Azul = mejor (valores altos).' : 'Rojo = valores altos.'} Si un país aún no ha publicado el último dato, se muestra el anterior (en cursiva).</p>
+        <p class="fuente-nota">Fuente: Eurostat (${info.nombre}). Los colores son fijos para todo el periodo, para que se puedan comparar los años.
+          Si un país aún no ha publicado el último dato, se muestra el anterior (en cursiva).</p>
       </section>`;
 
     const $ = (s) => nodo.querySelector(s);
@@ -122,6 +207,13 @@ export default {
     }
     const lo = Math.min(0, zmin), hi = Math.max(0, zmax);
     const alto = 20.4;
+    // Línea de referencia vertical en la clasificación (objetivo del 2 %, límite del 60 %…).
+    // Las pistas empiezan a 130 px (posición + nombre + huecos) y miden el ancho total menos 192 px.
+    if (ficha.referencia != null && ficha.referencia > lo && ficha.referencia < hi) {
+      const k = (ficha.referencia - lo) / (hi - lo);
+      carrera.insertAdjacentHTML('afterbegin', `<div class="ref-carrera" style="left:calc(130px + (100% - 192px) * ${k.toFixed(4)})"
+        title="${ficha.refTexto}"><span>${ficha.refTexto}</span></div>`);
+    }
 
     function pintarCarrera(fila) {
       const orden = UE.filter((p) => fila[p]).sort((a, b) => fila[b].v - fila[a].v);
@@ -156,12 +248,13 @@ export default {
         type: 'choropleth', locationmode: 'ISO-3',
         locations: paises.map((p) => ISO3[p]),
         z: paises.map((p) => fila[p].v),
-        customdata: paises.map((p) => [ctx.nombrePais(p), fila[p].estimado ? ' (último dato disponible)' : '']),
-        hovertemplate: `<b>%{customdata[0]}</b><br>%{z:.${dec}f}${sufijo}%{customdata[1]}<extra></extra>`,
+        customdata: paises.map((p) => [ctx.nombrePais(p), fila[p].estimado ? '<br><i>último dato disponible</i>' : '']),
+        hovertemplate: `<b>%{customdata[0]}</b><br>%{z:,.${dec}f}${sufijo} <span style="opacity:.7">· ${ficha.unidad}</span>%{customdata[1]}<extra></extra>`,
         zmin, zmax, zauto: false,
         colorscale: escala.map((c, i) => [i / (escala.length - 1), c]),
         marker: { line: { color: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#05080f', width: 0.8 } },
-        colorbar: { thickness: 10, len: 0.7, x: 0.98, outlinewidth: 0, ticksuffix: sufijo, tickfont: { size: 11 } },
+        colorbar: { thickness: 10, len: 0.7, x: 0.98, outlinewidth: 0, ticksuffix: sufijo, tickfont: { size: 11 },
+          title: { text: ficha.unidad.replace(/ \(/, '<br>('), side: 'top', font: { size: 11 } } },
       };
     }
 
@@ -171,10 +264,10 @@ export default {
       const puesto = orden.indexOf('ES') + 1;
       const media = orden.length ? orden.reduce((s, p) => s + fila[p].v, 0) / orden.length : null;
       const ea = (datos.EA || []).filter((x) => x[0] <= fecha).at(-1);
-      const elegido = foco !== 'ES' && fila[foco] ? ` · <span>${ctx.nombrePais(foco)}: <strong>${fmt(fila[foco].v, dec)}${sufijo}</strong></span>` : '';
-      $('[data-resumen]').innerHTML = `${puesto ? `<span>España: <strong>${fmt(fila.ES.v, dec)}${sufijo}</strong> · <strong>${puesto}.º</strong> valor más alto de ${orden.length}</span>` : ''}
-        ${media != null ? `<span>Media simple UE: <strong>${fmt(media, dec)}${sufijo}</strong></span>` : ''}
-        ${ea ? `<span>Zona euro: <strong>${fmt(ea[1], dec)}${sufijo}</strong></span>` : ''}${elegido}`;
+      const elegido = foco !== 'ES' && fila[foco] ? ` · <span>${ctx.nombrePais(foco)}: <strong>${conUnidad(fila[foco].v)}</strong></span>` : '';
+      $('[data-resumen]').innerHTML = `${puesto ? `<span>España: <strong>${conUnidad(fila.ES.v)}</strong> · <strong>${puesto}.º</strong> más alto de ${orden.length}</span>` : ''}
+        ${media != null ? `<span title="Media de los países con dato, sin ponderar por tamaño">Media de la UE: <strong>${conUnidad(media)}</strong></span>` : ''}
+        ${ea ? `<span>Zona euro: <strong>${conUnidad(ea[1])}</strong></span>` : ''}${elegido}`;
     }
 
     let primera = true;
@@ -257,8 +350,16 @@ export default {
       if (datos.EA) { trazas.push(linea('Zona euro', datos.EA, COLORES.EA, { sufijo, line: { dash: 'dot' } })); nombres['Zona euro'] = datos.EA; } else fuera.push('EA');
       hist.el.querySelector('h2').textContent = foco === 'ES' ? 'Historia: España frente a la zona euro' : `Historia: ${ctx.nombrePais(foco)} frente a España`;
       const marca = fechas[indice];
+      const base = layout();
+      const shapes = [{ type: 'line', xref: 'x', yref: 'paper', x0: marca, x1: marca, y0: 0, y1: 1, line: { color: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#a855f7', width: 1, dash: 'dot' } }];
+      const annotations = [];
+      if (ficha.referencia != null) {
+        shapes.push({ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: ficha.referencia, y1: ficha.referencia, line: { color: '#94a3b8', width: 1.2, dash: 'dash' } });
+        annotations.push({ xref: 'paper', x: 0, y: ficha.referencia, text: ficha.refTexto, showarrow: false, xanchor: 'left', yanchor: 'bottom', font: { size: 11, color: '#94a3b8' } });
+      }
       dibujar(hist.grafico, trazas, {
-        shapes: [{ type: 'line', xref: 'x', yref: 'paper', x0: marca, x1: marca, y0: 0, y1: 1, line: { color: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#a855f7', width: 1, dash: 'dot' } }],
+        shapes, annotations,
+        yaxis: { ...base.yaxis, title: { text: ficha.unidad, font: { size: 12 } }, ticksuffix: sufijo },
       });
       const t = Object.fromEntries(Object.entries(nombres));
       const cab = ['Fecha', ...Object.keys(t)];
@@ -283,7 +384,7 @@ export default {
     descargar.style.marginTop = '10px';
     descargar.addEventListener('click', () => {
       const fila = tabla[indice];
-      descargarCSV(`${id}_${fechas[indice]}.csv`, ['País', 'Código', 'Valor', 'Fecha', 'Último dato disponible'],
+      descargarCSV(`${id}_${fechas[indice]}.csv`, ['País', 'Código', `Valor (${ficha.unidad})`, 'Fecha', 'Último dato disponible'],
         UE.filter((p) => fila[p]).sort((a, b) => fila[b].v - fila[a].v).map((p) => [ctx.nombrePais(p), p, fila[p].v, fechas[indice], fila[p].estimado ? 'sí' : 'no']));
     });
     carrera.parentElement.appendChild(descargar);
@@ -299,7 +400,7 @@ export default {
     // Al moverse en el tiempo, la marca vertical del gráfico de historia sigue a la fecha.
     const moverMarca = () => {
       if (!hist.grafico.layout) return;
-      Plotly.relayout(hist.grafico, { 'shapes[0].x0': fechas[indice], 'shapes[0].x1': fechas[indice] });
+      Plotly.relayout(hist.grafico, { 'shapes[0].x0': fechas[indice], 'shapes[0].x1': fechas[indice] }); // la 0 es la marca de la fecha
     };
     deslizador.addEventListener('change', moverMarca);
     let ultimaMarca = 0;
