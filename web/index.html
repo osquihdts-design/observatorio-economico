@@ -87,6 +87,11 @@
             <span class="slider" aria-hidden="true"></span>
             <span>Modo explicación académica</span>
           </label>
+          <label class="switch" title="Recesiones de la zona euro (CEPR) y acontecimientos clave en los gráficos">
+            <input type="checkbox" id="eventos" checked />
+            <span class="slider" aria-hidden="true"></span>
+            <span>Recesiones y acontecimientos</span>
+          </label>
           <label class="switch">
             <input type="checkbox" id="tema-claro" />
             <span class="slider" aria-hidden="true"></span>
@@ -103,6 +108,10 @@
             <div class="ticker-pista" id="ticker-pista"></div>
           </div>
           <div class="reloj" id="reloj" aria-hidden="true"></div>
+          <button class="btn-compartir" id="compartir" title="Copiar un enlace que abre exactamente esta vista (tecla L)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+            <span>Compartir</span>
+          </button>
         </header>
         <div class="aviso" id="aviso" hidden></div>
         <div id="pagina" class="pagina"></div>
@@ -149,6 +158,7 @@
           <dt><kbd>A</kbd></dt><dd>Modo explicación académica</dd>
           <dt><kbd>T</kbd></dt><dd>Cambiar tema claro / oscuro</dd>
           <dt><kbd>U</kbd></dt><dd>Actualizar los datos</dd>
+          <dt><kbd>L</kbd></dt><dd>Copiar un enlace a lo que estás viendo (para compartirlo)</dd>
           <dt><kbd>Espacio</kbd></dt><dd>Reproducir / pausar el mapa de Europa</dd>
           <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Avanzar / retroceder en el tiempo (mapa)</dd>
           <dt><kbd>Esc</kbd></dt><dd>Cerrar ventanas</dd>

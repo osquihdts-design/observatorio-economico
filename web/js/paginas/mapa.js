@@ -154,6 +154,24 @@ export default {
     let reproduciendo = false;
     let reloj = null;
     let pausa = VELOCIDADES['1×'];
+    // Vista: mapa con clasificación · dos mapas para comparar fechas · tabla.
+    let vista = 'mapa';
+    // Fecha de comparación por defecto: el mismo periodo cinco años antes.
+    let indice2 = Math.max(0, indice - (info.frecuencia === 'Q' ? 20 : 60));
+
+    // Lo que trae el enlace compartido: fecha (f), país elegido (c), vista (v) y fecha de comparación (f2).
+    const enlace = ctx.consulta || {};
+    if (fechas.includes(enlace.f)) indice = fechas.indexOf(enlace.f);
+    if (fechas.includes(enlace.f2)) indice2 = fechas.indexOf(enlace.f2);
+    if (UE.includes(enlace.c)) foco = enlace.c;
+    if (['comparar', 'tabla'].includes(enlace.v)) vista = enlace.v;
+    const cambioUnidad = ficha.corta === '%' ? 'p. p.' : 'puntos'; // la diferencia entre dos porcentajes son puntos porcentuales
+
+    const anioAntes = (i) => { // índice del mismo periodo un año antes
+      const [a, resto] = [Number(fechas[i].slice(0, 4)), fechas[i].slice(4)];
+      return fechas.indexOf(`${a - 1}${resto}`);
+    };
+    const opcionesFecha = (sel) => fechas.map((f, i) => `<option value="${i}" ${i === sel ? 'selected' : ''}>${fechaTexto(f, info.frecuencia)}</option>`).reverse().join('');
 
     nodo.innerHTML = `
       <header class="cabecera"><span class="etiqueta">Unión Europea · 27 países</span>
@@ -163,6 +181,10 @@ export default {
       <section class="card">
         <div class="mapa-controles">
           <select data-indicador aria-label="Indicador">${europeos.map((i) => `<option value="${i.id}" ${i.id === id ? 'selected' : ''}>${i.nombre}</option>`).join('')}</select>
+          <div class="vistas-mapa" role="tablist" aria-label="Vista">
+            ${[['mapa', '🗺 Mapa'], ['comparar', '◫ Comparar dos fechas'], ['tabla', '▤ Tabla']].map(([v, n]) =>
+              `<button role="tab" data-vista="${v}" class="${v === vista ? 'on' : ''}" aria-selected="${v === vista}">${n}</button>`).join('')}
+          </div>
           <span class="leyenda-mapa" data-resumen></span>
         </div>
         <div class="ficha-indicador">
@@ -181,10 +203,13 @@ export default {
           <input class="linea-tiempo" type="range" min="0" max="${fechas.length - 1}" value="${indice}" aria-label="Fecha">
           <div class="velocidad">${Object.keys(VELOCIDADES).map((v) => `<button data-vel="${v}" class="${v === '1×' ? 'on' : ''}">${v}</button>`).join('')}</div>
         </div>
-        <div class="mapa-layout" style="margin-top:14px">
-          <div class="mapa" data-mapa></div>
-          <div><p class="carrera-titulo">Clasificación de mayor a menor · en ${ficha.unidad}</p><div class="carrera" data-carrera></div></div>
+        <div class="mapa-layout" data-vista="${vista}" style="margin-top:14px">
+          <div class="panel-mapa"><p class="titulo-mapa" data-titulo-a></p><div class="mapa" data-mapa></div></div>
+          <div class="panel-carrera"><p class="carrera-titulo">Clasificación de mayor a menor · en ${ficha.unidad}</p><div class="carrera" data-carrera></div></div>
+          <div class="panel-mapa2"><p class="titulo-mapa">Comparar con <select data-f2 aria-label="Fecha de comparación">${opcionesFecha(indice2)}</select></p><div class="mapa" data-mapa2></div></div>
+          <div class="panel-tabla"><div class="tabla-wrap"><table class="tabla-mapa"><thead></thead><tbody></tbody></table></div></div>
         </div>
+        <div class="cambios-mapa" data-cambios></div>
         <p class="fuente-nota">Fuente: Eurostat (${info.nombre}). Los colores son fijos para todo el periodo, para que se puedan comparar los años.
           Si un país aún no ha publicado el último dato, se muestra el anterior (en cursiva).</p>
       </section>`;
@@ -270,6 +295,76 @@ export default {
         ${ea ? `<span>Zona euro: <strong>${conUnidad(ea[1])}</strong></span>` : ''}${elegido}`;
     }
 
+    const capaGeo = () => ({
+      ...layout(), margin: { l: 0, r: 0, t: 0, b: 0 }, hovermode: 'closest',
+      geo: {
+        scope: 'europe', projection: { type: 'mercator' }, resolution: 50,
+        lonaxis: { range: [-24, 42] }, lataxis: { range: [34, 70.5] },
+        bgcolor: 'rgba(0,0,0,0)', showframe: false, showcoastlines: false,
+        showland: true, landcolor: getComputedStyle(document.documentElement).getPropertyValue('--panel-2').trim() || '#111827',
+        showcountries: true, countrycolor: getComputedStyle(document.documentElement).getPropertyValue('--line-2').trim() || '#334155',
+        showocean: false, showlakes: false,
+      },
+    });
+    const divMapa2 = $('[data-mapa2]');
+    const conSigno = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), dec)}`;
+
+    // ---- Segundo mapa (comparar dos fechas): misma escala de colores que el primero.
+    let clicMapa2 = false;
+    async function pintarMapa2() {
+      const t = trazaMapa(tabla[indice2]);
+      await Plotly.react(divMapa2, [t], capaGeo(), { ...CONFIG, scrollZoom: false });
+      if (!clicMapa2) { clicMapa2 = true; divMapa2.on('plotly_click', (ev) => enfocar(DE_ISO3[ev.points?.[0]?.location])); }
+    }
+
+    /** Resumen de cambios entre las dos fechas: España, la mayor subida y la mayor bajada. */
+    function pintarCambios() {
+      const caja = $('[data-cambios]');
+      if (vista !== 'comparar') { caja.innerHTML = ''; return; }
+      const a = tabla[indice], b = tabla[indice2];
+      const fa = fechaTexto(fechas[indice], info.frecuencia), fb = fechaTexto(fechas[indice2], info.frecuencia);
+      const cambios = UE.filter((p) => a[p] && b[p]).map((p) => [p, a[p].v - b[p].v]).sort((x, y) => y[1] - x[1]);
+      if (!cambios.length) { caja.innerHTML = '<p class="sub">No hay países con dato en las dos fechas.</p>'; return; }
+      const es = cambios.find(([p]) => p === 'ES');
+      const [subeP, subeV] = cambios[0];
+      const [bajaP, bajaV] = cambios.at(-1);
+      caja.innerHTML = `<b>Entre ${fb} y ${fa}</b>
+        ${es ? `<span>España: <strong>${conSigno(es[1])} ${cambioUnidad}</strong> (de ${fmt(b.ES.v, dec)} a ${fmt(a.ES.v, dec)})</span>` : ''}
+        <span>Mayor subida: <strong>${ctx.nombrePais(subeP)} ${conSigno(subeV)}</strong></span>
+        <span>Mayor bajada: <strong>${ctx.nombrePais(bajaP)} ${conSigno(bajaV)}</strong></span>`;
+      $('[data-titulo-a]').innerHTML = `<b>${fa}</b>`;
+    }
+
+    // ---- Tabla de todos los países (se puede ordenar pulsando las columnas)
+    let ordenTabla = { col: 'valor', dir: -1 };
+    function pintarTabla() {
+      if (vista !== 'tabla') return;
+      const a = tabla[indice];
+      const ia = anioAntes(indice);
+      const antes = ia >= 0 ? tabla[ia] : {};
+      const b = tabla[indice2];
+      const fb = fechaTexto(fechas[indice2], info.frecuencia);
+      const ranking = UE.filter((p) => a[p]).sort((x, y) => a[y].v - a[x].v);
+      const filasT = UE.map((p) => ({
+        p, nombre: ctx.nombrePais(p), puesto: ranking.indexOf(p) + 1 || null, valor: a[p]?.v ?? null, estimado: a[p]?.estimado,
+        anio: a[p] && antes[p] ? a[p].v - antes[p].v : null, comp: a[p] && b[p] ? a[p].v - b[p].v : null,
+      }));
+      const { col, dir } = ordenTabla;
+      filasT.sort((x, y) => (x[col] == null) - (y[col] == null) || (typeof x[col] === 'string' ? x[col].localeCompare(y[col], 'es') : x[col] - y[col]) * dir);
+      const cols = [['puesto', '#'], ['nombre', 'País'], ['valor', `Valor (${ficha.unidad})`], ['anio', `Cambio en un año (${cambioUnidad})`], ['comp', `Cambio desde ${fb} (${cambioUnidad})`]];
+      $('.tabla-mapa thead').innerHTML = `<tr>${cols.map(([k, n]) => `<th data-orden="${k}" class="${k === 'nombre' ? '' : 'num'} ${k === col ? (dir > 0 ? 'asc' : 'desc') : ''}">${n}</th>`).join('')}</tr>`;
+      const celdaCambio = (v) => (v == null ? '—' : `<span class="${Math.abs(v) < 1e-9 ? '' : v > 0 ? 'sube-t' : 'baja-t'}">${conSigno(v)}</span>`);
+      $('.tabla-mapa tbody').innerHTML = filasT.map((f) => `<tr data-pais="${f.p}" class="${f.p === 'ES' ? 'fila-es' : ''} ${f.p === foco && f.p !== 'ES' ? 'fila-foco' : ''}">
+        <td class="num">${f.puesto ?? '—'}</td><td>${f.nombre}</td>
+        <td class="num"><strong${f.estimado ? ' title="Último dato disponible" style="font-style:italic"' : ''}>${f.valor == null ? '—' : fmt(f.valor, dec)}</strong></td>
+        <td class="num">${celdaCambio(f.anio)}</td><td class="num">${celdaCambio(f.comp)}</td></tr>`).join('');
+    }
+
+    /** Guarda en el enlace la fecha, el país, la vista y la fecha de comparación (para compartir esta vista exacta). */
+    function guardarVista() {
+      ctx.fijarConsulta?.({ f: fechas[indice], c: foco !== 'ES' ? foco : '', v: vista !== 'mapa' ? vista : '', f2: vista !== 'mapa' ? fechas[indice2] : '' });
+    }
+
     let primera = true;
     function mostrar(i) {
       indice = Math.max(0, Math.min(fechas.length - 1, i));
@@ -277,22 +372,30 @@ export default {
       const fila = tabla[indice];
       const orden = pintarCarrera(fila);
       actualizarTextos(orden, fila);
+      pintarCambios();
+      pintarTabla();
+      if (!reproduciendo) guardarVista();
       const t = trazaMapa(fila);
       if (primera) {
         primera = false;
-        return Plotly.newPlot(divMapa, [t], {
-          ...layout(), margin: { l: 0, r: 0, t: 0, b: 0 }, hovermode: 'closest',
-          geo: {
-            scope: 'europe', projection: { type: 'mercator' }, resolution: 50,
-            lonaxis: { range: [-24, 42] }, lataxis: { range: [34, 70.5] },
-            bgcolor: 'rgba(0,0,0,0)', showframe: false, showcoastlines: false,
-            showland: true, landcolor: getComputedStyle(document.documentElement).getPropertyValue('--panel-2').trim() || '#111827',
-            showcountries: true, countrycolor: getComputedStyle(document.documentElement).getPropertyValue('--line-2').trim() || '#334155',
-            showocean: false, showlakes: false,
-          },
-        }, { ...CONFIG, scrollZoom: false });
+        return Plotly.newPlot(divMapa, [t], capaGeo(), { ...CONFIG, scrollZoom: false });
       }
       return Plotly.restyle(divMapa, { locations: [t.locations], z: [t.z], customdata: [t.customdata] }, [0]);
+    }
+
+    function ponerVista(v) {
+      vista = v;
+      $('.mapa-layout').dataset.vista = v;
+      nodo.querySelectorAll('[data-vista]').forEach((b) => { if (b.tagName === 'BUTTON') { b.classList.toggle('on', b.dataset.vista === v); b.setAttribute('aria-selected', b.dataset.vista === v); } });
+      if (divMapa.data) Plotly.restyle(divMapa, { showscale: v !== 'comparar' }, [0]); // en la comparación, una sola leyenda (la de la derecha)
+      // Plotly solo puede reajustar el tamaño de un gráfico que ya está en pantalla.
+      const ajustar = (div) => { if (div.data && div.offsetParent) Plotly.Plots.resize(div).catch(() => {}); };
+      if (v === 'comparar') pintarMapa2().then(() => ajustar(divMapa2));
+      requestAnimationFrame(() => ajustar(divMapa));
+      if (v !== 'comparar') $('[data-titulo-a]').innerHTML = '';
+      pintarCambios();
+      pintarTabla();
+      guardarVista();
     }
 
     const ICONO_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>';
@@ -301,7 +404,11 @@ export default {
       botonPlay.innerHTML = reproduciendo ? ICONO_PAUSA : ICONO_PLAY;
       botonPlay.setAttribute('aria-label', reproduciendo ? 'Pausar' : 'Reproducir');
     }
-    function parar() { reproduciendo = false; clearTimeout(reloj); pintarBoton(); }
+    function parar() {
+      const estaba = reproduciendo;
+      reproduciendo = false; clearTimeout(reloj); pintarBoton();
+      if (estaba) guardarVista(); // durante la animación no se toca el enlace; al parar, sí
+    }
     function paso() {
       if (!reproduciendo) return;
       if (indice >= fechas.length - 1) { parar(); return; }
@@ -328,7 +435,30 @@ export default {
       pausa = VELOCIDADES[b.dataset.vel];
       nodo.querySelectorAll('[data-vel]').forEach((x) => x.classList.toggle('on', x === b));
     });
-    $('[data-indicador]').addEventListener('change', (e) => { location.hash = `#/mapa/${e.target.value}`; });
+    // Al cambiar de indicador se conserva la vista (mapa, comparar o tabla).
+    $('[data-indicador]').addEventListener('change', (e) => { location.hash = `#/mapa/${e.target.value}${vista !== 'mapa' ? `?v=${vista}` : ''}`; });
+    $('.vistas-mapa').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-vista]');
+      if (b && b.dataset.vista !== vista) ponerVista(b.dataset.vista);
+    });
+    $('[data-f2]').addEventListener('change', (e) => {
+      indice2 = Number(e.target.value);
+      pintarMapa2();
+      pintarCambios();
+      pintarTabla();
+      guardarVista();
+    });
+    $('.tabla-mapa').addEventListener('click', (e) => {
+      const th = e.target.closest('[data-orden]');
+      if (th) {
+        const col = th.dataset.orden;
+        ordenTabla = { col, dir: ordenTabla.col === col ? -ordenTabla.dir : (col === 'nombre' || col === 'puesto' ? 1 : -1) };
+        pintarTabla();
+        return;
+      }
+      const fila = e.target.closest('[data-pais]');
+      if (fila) enfocar(fila.dataset.pais);
+    });
 
     // ---- Historia del país elegido
     const hist = tarjeta({
@@ -395,6 +525,7 @@ export default {
     pintarBoton();
     await mostrar(indice);
     divMapa.on('plotly_click', (ev) => enfocar(DE_ISO3[ev.points?.[0]?.location]));
+    if (vista !== 'mapa') ponerVista(vista); // el enlace pedía otra vista
     pintarHistoria();
 
     // Al moverse en el tiempo, la marca vertical del gráfico de historia sigue a la fecha.

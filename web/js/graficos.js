@@ -92,9 +92,54 @@ function prepararTrazas(trazas) {
   return salida;
 }
 
+// ---------------------------------------------------------------- Recesiones y acontecimientos
+// Recesiones de la zona euro según el comité de fechado del ciclo del CEPR-EABCN
+// (picos 2008T1, 2011T3 y 2019T4; valles 2009T2, 2013T1 y 2020T2). Se sombrea del trimestre siguiente al pico hasta el valle.
+export const RECESIONES = [
+  { desde: '2008-04-01', hasta: '2009-06-30', nombre: 'Gran Recesión' },
+  { desde: '2011-10-01', hasta: '2013-03-31', nombre: 'Crisis de la deuda' },
+  { desde: '2020-01-01', hasta: '2020-06-30', nombre: 'COVID-19' },
+];
+export const EVENTOS = [
+  { fecha: '2008-09-15', texto: 'Lehman' },                // quiebra de Lehman Brothers
+  { fecha: '2012-07-26', texto: '«Whatever it takes»' },   // discurso de Draghi
+  { fecha: '2015-03-09', texto: 'QE del BCE' },            // empiezan las compras de deuda pública
+  { fecha: '2020-03-14', texto: 'COVID-19' },              // estado de alarma en España
+  { fecha: '2022-02-24', texto: 'Ucrania' },               // invasión rusa
+  { fecha: '2022-07-21', texto: 'BCE sube tipos' },        // primera subida desde 2011
+];
+let conEventos = true;
+export const ponerEventos = (activo) => { conEventos = activo; };
+
+/** Bandas de recesión y líneas de acontecimientos, solo dentro de las fechas que muestra el gráfico. */
+function capaEventos(trazas) {
+  const fechas = trazas.flatMap((t) => (Array.isArray(t.x) ? t.x : [])).filter((x) => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}/.test(x));
+  if (!fechas.length) return [];
+  let min = fechas[0], max = fechas[0];
+  for (const f of fechas) { if (f < min) min = f; if (f > max) max = f; }
+  const tenue = oscuro() ? 'rgba(148,163,184,0.10)' : 'rgba(100,116,139,0.10)';
+  const texto = oscuro() ? '#8c99b0' : '#5b6474';
+  const formas = [];
+  for (const r of RECESIONES) {
+    if (r.hasta < min || r.desde > max) continue;
+    formas.push({ type: 'rect', xref: 'x', yref: 'paper', x0: r.desde < min ? min : r.desde, x1: r.hasta > max ? max : r.hasta, y0: 0, y1: 1,
+      fillcolor: tenue, line: { width: 0 }, layer: 'below',
+      label: { text: 'Recesión', textposition: 'bottom center', font: { size: 9.5, color: texto } } });
+  }
+  for (const e of EVENTOS) {
+    if (e.fecha < min || e.fecha > max) continue;
+    formas.push({ type: 'line', xref: 'x', yref: 'paper', x0: e.fecha, x1: e.fecha, y0: 0, y1: 1, layer: 'below',
+      line: { color: oscuro() ? 'rgba(251,191,36,0.45)' : 'rgba(180,120,0,0.45)', width: 1, dash: 'dot' },
+      label: { text: e.texto, textposition: 'end', textangle: -90, xanchor: 'right', font: { size: 9.5, color: texto } } });
+  }
+  return formas;
+}
+
 export function dibujar(div, trazas, extra = {}) {
   const base = layout();
   const yaDibujado = Array.isArray(div.data) && div.data.length > 0;
+  const { eventos = true, ...resto } = extra; // eventos: false para gráficos pequeños o sin fechas
+  extra = resto;
   const capa = {
     ...base, ...extra,
     xaxis: { ...base.xaxis, ...(extra.xaxis || {}) },
@@ -104,6 +149,8 @@ export function dibujar(div, trazas, extra = {}) {
     if (/^yaxis\d$/.test(clave)) capa[clave] = { ...base.yaxis, ...extra[clave] };
   }
   if (capa.shapes) capa.shapes = capa.shapes.map((s) => ({ ...s, line: { ...s.line, color: tono(s.line?.color) } }));
+  // Van después de las formas propias del gráfico, para no cambiar su posición (shapes[0]…).
+  if (eventos && conEventos) capa.shapes = [...(capa.shapes || []), ...capaEventos(trazas)];
   if (yaDibujado && !sinMovimiento) capa.transition = { duration: 550, easing: 'cubic-in-out' };
   const promesa = Plotly.react(div, prepararTrazas(trazas), capa, CONFIG);
   if (!yaDibujado && !sinMovimiento) {

@@ -45,6 +45,10 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
    - Obsidian = carpeta de notas: `obsidian.sincronizar` importa primero (gana lo más reciente por fecha de modificación) y luego exporta a `<bóveda>/Observatorio/`. Bóveda del usuario: `C:\Users\osqui\Downloads\mybrain\My brain` (ajuste `boveda` en `inv_ajustes`). Los tests usan una bóveda temporal: nunca la real.
    - `almacen.conectar` prepara tablas y semilla una sola vez por proceso con un candado (el servidor es multihilo).
 
+8. ✅ Mapa con ficha por indicador (`FICHAS` en `mapa.js`: unidad, qué mide, cómo leerlo, escala de color y referencia) y vistas mapa / comparar / tabla.
+   Enlaces con estado: `#/pagina/param?p=…&r=…|d=…&h=…` + parámetros de página (`ctx.consulta`, `ctx.fijarConsulta`; el mapa usa f, c, v, f2). Botón Compartir (`L`): en local copia la URL pública.
+   Recesiones CEPR-EABCN y eventos en `graficos.js` (`RECESIONES`, `EVENTOS`), añadidos por `dibujar` (opción `eventos: false` para quitarlos) e interruptor en la barra lateral.
+
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
 - GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC y en cada push a main: datos como artifact + web en GitHub Pages). Acciones en v7 (Node 24); Pages: configure-pages@v6, upload-pages-artifact@v5, deploy-pages@v5.

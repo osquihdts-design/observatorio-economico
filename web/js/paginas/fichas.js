@@ -46,7 +46,7 @@ function graficoPrediccion(div, r, historico) {
       hovertemplate: '%{y:.2f}<extra>Dato real</extra>' },
     { x: [ultimaFecha, horizonte], y: [ultimoValor, r.dato_valor], type: 'scatter', mode: 'lines+markers', name: 'Predicción',
       line: { color: '#C8102E', width: 2, dash: 'dash' }, marker: { size: [0, 9] }, hovertemplate: '%{y:.2f}<extra>Predicción</extra>' },
-  ], { showlegend: false, margin: { l: 34, r: 8, t: 6, b: 24 }, hovermode: 'closest', xaxis: { tickfont: { size: 10 } }, yaxis: { tickfont: { size: 10 } } });
+  ], { eventos: false, showlegend: false, margin: { l: 34, r: 8, t: 6, b: 24 }, hovermode: 'closest', xaxis: { tickfont: { size: 10 } }, yaxis: { tickfont: { size: 10 } } });
 }
 
 async function lista(nodo, ctx) {

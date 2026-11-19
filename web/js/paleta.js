@@ -102,6 +102,7 @@ export function iniciarAtajos(acciones) {
     else if (e.key.toLowerCase() === 'a') acciones.academico();
     else if (e.key.toLowerCase() === 't') acciones.tema();
     else if (e.key.toLowerCase() === 'u') acciones.actualizar();
+    else if (e.key.toLowerCase() === 'l') acciones.compartir?.();
     else if (e.key === '?') acciones.ayuda();
   });
 }

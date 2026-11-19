@@ -1,6 +1,6 @@
 // Estructura general: barra lateral, ticker, reloj, tema, paleta de comandos, atajos y navegación con transiciones.
 import { ESTATICO, REPOSITORIO, get, post } from './api.js';
-import { aplicarTema, cerrarVisor, COLORES, fmt } from './graficos.js';
+import { aplicarTema, cerrarVisor, COLORES, fmt, ponerEventos } from './graficos.js';
 import { avisar, contar, iniciarFondo, iniciarTarjetas, revelar, transicion } from './efectos.js';
 import { iniciarAtajos, iniciarPaleta } from './paleta.js';
 import { aviso } from './ui.js';
@@ -103,6 +103,7 @@ function ponerRango(r) {
   estado.rango = r;
   guardar('rango', r);
   aplicarRango();
+  escribirHash(); // antes de pintar: si no, el enlace antiguo devolvería el periodo anterior
   pintar();
 }
 
@@ -116,6 +117,7 @@ for (const id of ['#desde', '#hasta']) {
     estado.desde = $('#desde').value ? `${$('#desde').value}-01` : null;
     estado.hasta = $('#hasta').value ? `${$('#hasta').value}-01` : null;
     aplicarRango();
+    escribirHash();
     pintar();
   });
 }
@@ -134,6 +136,7 @@ function alternarPais(c) {
   estado.paises = estado.paises.includes(c) ? estado.paises.filter((p) => p !== c) : [...estado.paises, c];
   guardar('paises', estado.paises);
   pintarPaises();
+  escribirHash();
   pintar();
 }
 $('#paises').addEventListener('click', (e) => {
@@ -273,6 +276,9 @@ function comandos() {
   add({ tipo: 'acción', icono: '◐', titulo: 'Cambiar tema claro / oscuro', detalle: 'Tecla T', claves: 'tema oscuro claro modo', accion: alternarTema });
   add({ tipo: 'acción', icono: '🎓', titulo: 'Modo explicación académica', detalle: 'Tecla A', claves: 'academico explicacion formulas', accion: () => ponerAcademico(!academico.checked) });
   if (!ESTATICO) add({ tipo: 'acción', icono: '⟳', titulo: 'Actualizar los datos ahora', detalle: 'Tecla U', claves: 'actualizar descargar datos', accion: actualizar });
+  add({ tipo: 'acción', icono: '🔗', titulo: 'Copiar enlace a esta vista', detalle: 'Tecla L', claves: 'compartir enlace link url amigos', accion: compartir });
+  add({ tipo: 'acción', icono: '▥', titulo: `${$('#eventos').checked ? 'Ocultar' : 'Mostrar'} recesiones y acontecimientos`, claves: 'recesion eventos crisis covid lehman',
+    accion: () => { $('#eventos').click(); } });
   add({ tipo: 'acción', icono: '⌨', titulo: 'Ver atajos de teclado', detalle: 'Tecla ?', claves: 'atajos teclado ayuda', accion: abrirAyuda });
   add({ tipo: 'enlace', icono: '⧉', titulo: 'Abrir el código en GitHub', claves: 'github codigo repositorio',
     accion: () => window.open('https://github.com/osquihdts-design/observatorio-economico', '_blank', 'noopener') });
@@ -294,6 +300,7 @@ iniciarAtajos({
   academico: () => ponerAcademico(!academico.checked),
   tema: alternarTema,
   actualizar,
+  compartir,
   ayuda: abrirAyuda,
   cerrar: () => { paleta.cerrar(); cerrarVisor(); $('#ayuda').hidden = true; document.body.classList.remove('menu-abierto'); },
 });
@@ -303,9 +310,97 @@ $('#menu-movil').addEventListener('click', () => document.body.classList.toggle(
 // ---------------------------------------------------------------- Páginas
 const ESQUELETO = '<div class="carga"><div class="esqueleto e1"></div><div class="esqueleto e2"></div><div class="esqueleto e3"></div></div>';
 
+// ---------------------------------------------------------------- Enlaces que guardan la vista
+// #/pagina/parametro?p=DE,FR&r=10   (o d=2015-01&h=2020-12 para fechas a medida)
+// más los parámetros propios de cada página (el mapa usa f, c, v y f2).
+const GLOBALES = ['p', 'r', 'd', 'h'];
+const WEB_PUBLICA = 'https://osquihdts-design.github.io/observatorio-economico/';
+const SOLO_EN_LOCAL = ['investigacion', 'biblioteca', 'fichas', 'laboratorio'];
+let consultaPagina = {};
+
+function leerHash() {
+  const [ruta, consulta = ''] = location.hash.replace(/^#\/?/, '').split('?');
+  return { partes: ruta.split('/').filter(Boolean), q: new URLSearchParams(consulta) };
+}
+
+/** Si el enlace trae países o periodo, se aplican (sin cambiar las preferencias guardadas de quien lo abre). */
+function aplicarConsulta(q) {
+  let cambio = false;
+  if (q.has('p')) {
+    const validos = q.get('p').split(',').filter((c) => c in (catalogo?.paises || {}));
+    const nuevos = [...new Set([...FIJOS, ...validos])];
+    if (nuevos.join() !== [...new Set([...FIJOS, ...estado.paises])].join()) { estado.paises = nuevos; cambio = true; }
+  }
+  if (q.has('d') || q.has('h')) {
+    const d = q.get('d') ? `${q.get('d')}-01` : null;
+    const h = q.get('h') ? `${q.get('h')}-01` : null;
+    if (estado.rango !== 'custom' || d !== estado.desde || h !== estado.hasta) {
+      Object.assign(estado, { rango: 'custom', desde: d, hasta: h });
+      $('#desde').value = q.get('d') || '';
+      $('#hasta').value = q.get('h') || '';
+      cambio = true;
+    }
+  } else if (['1', '3', '5', '10', 'max'].includes(q.get('r')) && q.get('r') !== estado.rango) {
+    estado.rango = q.get('r');
+    cambio = true;
+  }
+  if (cambio) { aplicarRango(); pintarPaises(); }
+}
+
+/** Escribe en la dirección del navegador la vista actual (sin recargar la página). */
+function escribirHash() {
+  const { partes } = leerHash();
+  const q = new URLSearchParams();
+  q.set('p', estado.paises.filter((c) => !FIJOS.includes(c)).join(','));
+  if (estado.rango === 'custom') {
+    if (estado.desde) q.set('d', estado.desde.slice(0, 7));
+    if (estado.hasta) q.set('h', estado.hasta.slice(0, 7));
+  } else q.set('r', estado.rango);
+  for (const [k, v] of Object.entries(consultaPagina)) if (v != null && v !== '') q.set(k, v);
+  const ruta = partes.length ? partes.join('/') : paginaActual;
+  history.replaceState(null, '', `#/${ruta}?${q.toString().replace(/%2C/g, ',')}`);
+}
+
+async function copiarTexto(texto) {
+  try { await navigator.clipboard.writeText(texto); } catch {
+    const t = Object.assign(document.createElement('textarea'), { value: texto });
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+  }
+}
+
+async function compartir() {
+  escribirHash();
+  let url = location.href;
+  let nota = 'Enlace copiado: abre exactamente esta vista ✓';
+  // Desde el ordenador (localhost) el enlace no le serviría a nadie: se da el de la web pública.
+  if (!ESTATICO && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+    if (SOLO_EN_LOCAL.includes(paginaActual)) {
+      url = WEB_PUBLICA;
+      nota = 'Esta página solo está en tu ordenador: te he copiado el enlace de la web pública';
+    } else {
+      url = WEB_PUBLICA + location.hash;
+      nota = 'Enlace de la web pública copiado: abre esta misma vista ✓';
+    }
+  }
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    try { await navigator.share({ title: document.title, url }); return; } catch { /* cancelado: se copia */ }
+  }
+  await copiarTexto(url);
+  avisar(nota, 'ok', 3800);
+}
+$('#compartir').addEventListener('click', compartir);
+
+// ---------------------------------------------------------------- Recesiones y acontecimientos en los gráficos
+$('#eventos').checked = leer('eventos', true);
+ponerEventos($('#eventos').checked);
+$('#eventos').addEventListener('change', (e) => { guardar('eventos', e.target.checked); ponerEventos(e.target.checked); pintar(); });
+
 let turno = 0;
 async function pintar() {
-  const [nombre, parametro] = location.hash.replace('#/', '').split('/');
+  const { partes, q } = leerHash();
+  aplicarConsulta(q);
+  consultaPagina = Object.fromEntries([...q].filter(([k]) => !GLOBALES.includes(k)));
+  const [nombre, parametro] = partes;
   paginaActual = nombre in PAGINAS ? nombre : 'portada';
   const pagina = PAGINAS[paginaActual];
   document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.page === paginaActual));
@@ -322,6 +417,9 @@ async function pintar() {
     catalogo,
     resumen,
     parametro,
+    consulta: { ...consultaPagina },
+    // Las páginas guardan aquí su estado (p. ej. la fecha del mapa) para que el enlace lo recuerde.
+    fijarConsulta: (cambios) => { if (mio === turno) { Object.assign(consultaPagina, cambios); escribirHash(); } },
     indicador: (id) => catalogo.indicadores.find((i) => i.id === id),
     nombrePais: (c) => catalogo.nombres?.[c] || catalogo.paises[c] || c,
     vigente: () => mio === turno,  // para ignorar respuestas de una página que ya se ha dejado
@@ -333,6 +431,7 @@ async function pintar() {
     nodo.innerHTML = `<div class="alerta">No se pudo cargar la página: ${err.message}</div>`;
   }
   if (mio !== turno) return;
+  escribirHash();
   await transicion(contenedor, nodo);
   // Plotly calcula el tamaño al dibujar: tras insertar la página, se ajusta al ancho real.
   contenedor.querySelectorAll('.js-plotly-plot').forEach((g) => Plotly.Plots.resize(g));
