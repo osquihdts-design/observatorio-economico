@@ -1,6 +1,7 @@
 // Módulo 2: mercado laboral y curva de Phillips.
 import { post, series } from '../api.js';
 import { aTabla, COLORES, dibujar, fmt, layout, linea, tarjeta } from '../graficos.js';
+import { NOTA_PREVISIONES, trazasPrevision } from '../previsiones.js';
 
 // Subperiodos para ver cambios estructurales en la curva de Phillips.
 const PERIODOS = [
@@ -26,7 +27,9 @@ export default {
       fila.appendChild(t.el);
       const d = datos[id] || {};
       const orden = ctx.paises.filter((p) => d[p]);
-      dibujar(t.grafico, orden.map((p) => linea(ctx.nombrePais(p), d[p], COLORES[p], { sufijo: ' %', line: { width: p === 'ES' || p === 'EA' ? 2.8 : 1.8 } })),
+      const previstas = await trazasPrevision(id, orden);
+      if (previstas.length) t.el.querySelector('.sub').textContent += ` ${NOTA_PREVISIONES}`;
+      dibujar(t.grafico, [...orden.map((p) => linea(ctx.nombrePais(p), d[p], COLORES[p], { sufijo: ' %', line: { width: p === 'ES' || p === 'EA' ? 2.8 : 1.8 } })), ...previstas],
         { yaxis: { ticksuffix: ' %', rangemode: 'tozero' } });
       t.setDatos(aTabla(Object.fromEntries(orden.map((p) => [`${ctx.nombrePais(p)} (%)`, d[p]]))));
     }

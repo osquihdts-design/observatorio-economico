@@ -48,6 +48,10 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 8. ✅ Mapa con ficha por indicador (`FICHAS` en `mapa.js`: unidad, qué mide, cómo leerlo, escala de color y referencia) y vistas mapa / comparar / tabla.
    Enlaces con estado: `#/pagina/param?p=…&r=…|d=…&h=…` + parámetros de página (`ctx.consulta`, `ctx.fijarConsulta`; el mapa usa f, c, v, f2). Botón Compartir (`L`): en local copia la URL pública.
    Recesiones CEPR-EABCN y eventos en `graficos.js` (`RECESIONES`, `EVENTOS`), añadidos por `dibujar` (opción `eventos: false` para quitarlos) e interruptor en la barra lateral.
+9. ✅ Previsiones oficiales (`src/previsiones.py`, a mano y verificadas; `web/js/previsiones.js` las dibuja en IAPC, paro e historia del mapa) y calendario
+   (`src/connectors/calendario.py`: ICS del INE `dynt3/Calendario/calendario.ics` + página de reuniones del BCE; tabla `calendario`, lo actualiza `pipeline.ejecutar`).
+   El ICS de Eurostat (`cache/RELEASE_CALENDAR/calendar_EN.ics`) daba 404 en nov. 2026. 74 tests.
+   - `publicar_web.py` añade `?v=<huella del código>` a todos los imports y estilos: evita mezclar módulos viejos (caché de Pages, 10 min) con nuevos.
 
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.

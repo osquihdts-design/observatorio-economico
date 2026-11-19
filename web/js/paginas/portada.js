@@ -1,6 +1,6 @@
 // Portada: héroe con el radar de posición europea, tarjetas con los últimos datos (con números que cuentan),
 // divergencia España–zona euro y una tabla de todos los indicadores que se puede ordenar y filtrar.
-import { series } from '../api.js';
+import { get, series } from '../api.js';
 import { COLORES, descargarCSV, dibujar, fechaTexto, fmt, layout, sparkline, tarjeta, tono } from '../graficos.js';
 import { explicacion } from '../academico.js';
 
@@ -183,14 +183,45 @@ function tablaIndicadores(filasTodas, ctx) {
   return sec;
 }
 
+// ---------------------------------------------------------------- Próximos datos (calendario del INE y del BCE)
+const MES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const DIA_SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+function cuantoFalta(fecha) {
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const dias = Math.round((new Date(`${fecha}T00:00:00`) - hoy) / 86400000);
+  return dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : `en ${dias} días`;
+}
+
+function tarjetaCalendario(eventos) {
+  const hoy = new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD en hora local
+  const proximos = eventos.filter((e) => e.fecha >= hoy).slice(0, 8);
+  if (!proximos.length) return '';
+  return `<section class="card calendario">
+    <div class="card-head"><div><h2>Próximos datos</h2>
+      <p class="sub">Cuándo publican el INE y el BCE los datos que sigue el panel (hora peninsular). Se actualiza cada día con sus calendarios oficiales.</p></div>
+      <div class="acciones"><a class="btn" href="webcal://www.ine.es/dynt3/Calendario/calendario.ics" title="Suscribirse al calendario oficial del INE en tu móvil u ordenador">📅 Añadir el calendario del INE</a></div></div>
+    <ol class="lista-calendario">${proximos.map((e) => {
+      const d = new Date(`${e.fecha}T00:00:00`);
+      return `<li class="${e.fuente === 'BCE' ? 'bce' : ''}">
+        <a href="#/${e.pagina || 'portada'}">
+          <span class="dia"><b>${d.getDate()}</b>${MES_CORTO[d.getMonth()]}</span>
+          <span class="que"><strong>${e.titulo}</strong><small>${e.periodo}</small></span>
+          <span class="cuando"><span class="chip ${e.fuente}">${e.fuente}</span><small>${DIA_SEMANA[d.getDay()]} · ${e.hora || ''} · ${cuantoFalta(e.fecha)}</small></span>
+        </a></li>`;
+    }).join('')}</ol>
+  </section>`;
+}
+
 export default {
   titulo: 'Portada',
   async render(nodo, ctx) {
     const hace4 = `${new Date().getFullYear() - 4}-01-01`;
     const ids = [...new Set(KPIS.flatMap((k) => [k.id, k.ref.id]))];
-    const [kpi, div] = await Promise.all([
+    const [kpi, div, cal] = await Promise.all([
       series(ids, { paises: ['ES', 'EA'], desde: hace4 }),
       series(['iapc_general', 'paro'], { paises: ['ES', 'EA'], desde: ctx.desde, hasta: ctx.hasta }),
+      get('calendario').catch(() => ({ eventos: [] })),
     ]);
     const resumen = ctx.resumen || [];
     const punt = puntuaciones(resumen, ctx.catalogo.nombres || {});
@@ -222,7 +253,8 @@ export default {
         </div>
       </section>
       <div class="kpis">${KPIS.map((k) => tarjetaKpi(k, kpi, ctx)).join('')}</div>
-      ${explicacion('kpi')}`;
+      ${explicacion('kpi')}
+      ${tarjetaCalendario(cal.eventos || [])}`;
     radar(nodo.querySelector('[data-radar]'), punt, ctx);
 
     // Divergencia España – zona euro

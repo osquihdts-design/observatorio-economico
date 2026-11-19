@@ -48,6 +48,17 @@ CREATE TABLE IF NOT EXISTS sincronizaciones (
     rows        INTEGER NOT NULL,
     errors      TEXT
 );
+CREATE TABLE IF NOT EXISTS calendario (
+    fecha   TEXT NOT NULL,
+    hora    TEXT,
+    fuente  TEXT NOT NULL,
+    titulo  TEXT NOT NULL,
+    periodo TEXT NOT NULL,
+    detalle TEXT,
+    pagina  TEXT,
+    url     TEXT,
+    PRIMARY KEY (fecha, titulo, periodo)
+);
 """
 
 
@@ -165,6 +176,24 @@ def estado_fuentes(ruta: Path | None = None, horas_fresco: float = 24) -> dict[s
                 semaforo, mensaje = "verde", "Actualizado"
             estados[fuente] = {"semaforo": semaforo, "mensaje": mensaje, "cuando": fila["finished"], "errores": fila["errors"]}
     return estados
+
+
+CAMPOS_CALENDARIO = ["fecha", "hora", "fuente", "titulo", "periodo", "detalle", "pagina", "url"]
+
+
+def guardar_calendario(eventos: list[dict], ruta: Path | None = None) -> int:
+    """Sustituye el calendario de próximas publicaciones por el recién descargado."""
+    with closing(conectar(ruta)) as con, con:
+        con.execute("DELETE FROM calendario")
+        con.executemany(f"INSERT OR REPLACE INTO calendario VALUES ({', '.join('?' * len(CAMPOS_CALENDARIO))})",
+                        [tuple(e.get(c) for c in CAMPOS_CALENDARIO) for e in eventos])
+    return len(eventos)
+
+
+def leer_calendario(desde: str, ruta: Path | None = None) -> list[dict]:
+    """Publicaciones a partir de una fecha (AAAA-MM-DD), por orden."""
+    with closing(conectar(ruta)) as con:
+        return [dict(f) for f in con.execute("SELECT * FROM calendario WHERE fecha >= ? ORDER BY fecha, hora, titulo", (desde,))]
 
 
 def exportar_csv(destino: Path | None = None, ruta: Path | None = None) -> Path:

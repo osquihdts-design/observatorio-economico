@@ -16,6 +16,7 @@ import centro from './paginas/centro.js';
 import biblioteca from './paginas/biblioteca.js';
 import fichas from './paginas/fichas.js';
 import { cargarTaxonomia, editarRecurso, tax } from './investigacion.js';
+import { ponerPrevisiones } from './previsiones.js';
 
 // En la versión pública (sin servidor), el laboratorio explica cómo usarlo en local.
 const laboratorioPublico = {
@@ -394,6 +395,9 @@ $('#compartir').addEventListener('click', compartir);
 $('#eventos').checked = leer('eventos', true);
 ponerEventos($('#eventos').checked);
 $('#eventos').addEventListener('change', (e) => { guardar('eventos', e.target.checked); ponerEventos(e.target.checked); pintar(); });
+$('#previsiones').checked = leer('previsiones', true);
+ponerPrevisiones($('#previsiones').checked);
+$('#previsiones').addEventListener('change', (e) => { guardar('previsiones', e.target.checked); ponerPrevisiones(e.target.checked); pintar(); });
 
 let turno = 0;
 async function pintar() {

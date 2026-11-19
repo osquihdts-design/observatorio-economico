@@ -2,6 +2,7 @@
 import { series } from '../api.js';
 import { aTabla, COLORES, dibujar, fechaTexto, fmt, linea, referencia, tarjeta } from '../graficos.js';
 import { explicacion } from '../academico.js';
+import { NOTA_PREVISIONES, trazasPrevision } from '../previsiones.js';
 
 export default {
   titulo: 'Inflación y precios',
@@ -32,16 +33,18 @@ export default {
     selector.innerHTML = `<label>Mostrar<select id="tipo-iapc"><option value="iapc_general">Inflación general</option><option value="iapc_subyacente">Inflación subyacente</option></select></label>`;
     t2.el.insertBefore(selector, t2.grafico);
     nodo.appendChild(t2.el);
-    const pintarEuropa = () => {
+    const pintarEuropa = async () => {
       const id = selector.querySelector('select').value;
       const datos = europa[id] || {};
       const orden = ctx.paises.filter((p) => datos[p]);
-      dibujar(t2.grafico, orden.map((p) => linea(ctx.nombrePais(p), datos[p], COLORES[p], { sufijo: ' %', line: { width: p === 'ES' || p === 'EA' ? 2.8 : 1.8 } })),
+      const previstas = await trazasPrevision(id, orden);
+      t2.el.querySelector('.sub').textContent = `IAPC, variación anual en %.${previstas.length ? ` ${NOTA_PREVISIONES}` : ''}`;
+      dibujar(t2.grafico, [...orden.map((p) => linea(ctx.nombrePais(p), datos[p], COLORES[p], { sufijo: ' %', line: { width: p === 'ES' || p === 'EA' ? 2.8 : 1.8 } })), ...previstas],
         { ...referencia(2, 'Objetivo BCE: 2 %'), yaxis: { ticksuffix: ' %' } });
       t2.setDatos(aTabla(Object.fromEntries(orden.map((p) => [`${ctx.nombrePais(p)} (%)`, datos[p]]))));
     };
     selector.addEventListener('change', pintarEuropa);
-    pintarEuropa();
+    await pintarEuropa();
 
     // 3. Calculadora de poder adquisitivo
     const puntos = indice.ipc_general_indice?.ES || [];

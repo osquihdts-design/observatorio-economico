@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from .. import config
-from ..connectors import ecb_client, eurostat_client, ine_client
+from ..connectors import calendario, ecb_client, eurostat_client, ine_client
 from ..connectors.base import ahora
 from . import storage
 
@@ -28,11 +28,12 @@ class Resultado:
     errores: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
     correctos: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     totales: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    calendario: int | str | None = None  # nº de publicaciones del calendario, o el error
 
 
 def ejecutar(fuentes: tuple[str, ...] = ("INE", "EUROSTAT", "BCE"),
              progreso: Callable[[int, int, str], None] | None = None,
-             desde: str = config.FECHA_INICIO) -> Resultado:
+             desde: str = config.FECHA_INICIO, calendario_incluido: bool = True) -> Resultado:
     """Actualiza los datos. `progreso(hechos, total, nombre)` sirve para una barra de progreso."""
     indicadores = [i for i in config.todos_los_indicadores() if i["fuente"] in fuentes]
     resultado = Resultado()
@@ -57,4 +58,10 @@ def ejecutar(fuentes: tuple[str, ...] = ("INE", "EUROSTAT", "BCE"),
             fuente, inicio, resultado.correctos[fuente], resultado.totales[fuente],
             resultado.filas[fuente], resultado.errores[fuente],
         )
+    if calendario_incluido:
+        # Calendario de próximas publicaciones (INE y BCE). Si falla, se conserva el anterior y los datos no se ven afectados.
+        try:
+            resultado.calendario = storage.guardar_calendario(calendario.descargar_calendario())
+        except Exception as e:
+            resultado.calendario = f"Calendario no actualizado: {e}"
     return resultado
