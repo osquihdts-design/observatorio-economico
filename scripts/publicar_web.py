@@ -67,11 +67,12 @@ def generar(salida: Path = SALIDA) -> dict:
     (salida / ".nojekyll").write_text("", encoding="utf-8")  # GitHub Pages: servir los archivos tal cual
 
     version = versionar(salida)
-    indice = salida / "index.html"
-    html = indice.read_text(encoding="utf-8")
     generado = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    html = html.replace("<head>", f'<head>\n    {META}\n    <meta name="observatorio-generado" content="{generado}" />', 1)
-    indice.write_text(html, encoding="utf-8")
+    for pagina in ("index.html", "embed.html"):  # la web y el gráfico para insertar leen los mismos JSON
+        ruta = salida / pagina
+        html = ruta.read_text(encoding="utf-8")
+        html = html.replace("<head>", f'<head>\n    {META}\n    <meta name="observatorio-generado" content="{generado}" />', 1)
+        ruta.write_text(html, encoding="utf-8")
 
     api = salida / "api"
     peso = escribir(api / "catalogo.json", servidor.api_catalogo({}))

@@ -52,6 +52,9 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
    (`src/connectors/calendario.py`: ICS del INE `dynt3/Calendario/calendario.ics` + página de reuniones del BCE; tabla `calendario`, lo actualiza `pipeline.ejecutar`).
    El ICS de Eurostat (`cache/RELEASE_CALENDAR/calendar_EN.ics`) daba 404 en nov. 2026. 74 tests.
    - `publicar_web.py` añade `?v=<huella del código>` a todos los imports y estilos: evita mezclar módulos viejos (caché de Pages, 10 min) con nuevos.
+10. ✅ Aprender y compartir: `paginas/{guias,informe,insertar,sobre}.js` (también en la web pública), `web/embed.html` + `js/embed.js` + `css/embed.css`
+    (gráfico insertable: i, p, d, t, prev, ev), `css/aprender.css` (documento tipo papel e `@media print` con `#zona-impresion`), `LICENCIA.md` (CC BY 4.0 para contenidos;
+    licencia del código pendiente de que el usuario la elija). Las guías usan `markdown()` de `investigacion.js` (admite enlaces `#/…`). 75 tests.
 
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
