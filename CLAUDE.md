@@ -55,6 +55,7 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 10. ✅ Aprender y compartir: `paginas/{guias,informe,insertar,sobre}.js` (también en la web pública), `web/embed.html` + `js/embed.js` + `css/embed.css`
     (gráfico insertable: i, p, d, t, prev, ev), `css/aprender.css` (documento tipo papel e `@media print` con `#zona-impresion`), `LICENCIA.md` (CC BY 4.0 para contenidos;
     licencia del código pendiente de que el usuario la elija). Las guías usan `markdown()` de `investigacion.js` (admite enlaces `#/…`). 75 tests.
+11. ✅ Jóvenes, empleo y tecnología (`paginas/jovenes.js`, para el TFG de Sociología del usuario): 10 indicadores anuales de Eurostat (edat_lfse_20, lfsi_emp_a, edat_lfse_14, edat_lfse_03, isoc_sk_dskl_i21, isoc_sks_itspt, isoc_eb_ai, isoc_ai_iaiu ×3). Frecuencia `A` en el conector y agregado `EU27_2020` guardado como `UE` en todas las tablas (el mapa muestra la cifra oficial de la UE si existe; si no, la media simple). `yth_empl_050` y `lfsa_etpga` daban 404 en nov. 2026. 77 tests.
 
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.

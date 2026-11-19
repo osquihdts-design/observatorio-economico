@@ -8,6 +8,7 @@ import portada from './paginas/portada.js';
 import mapa from './paginas/mapa.js';
 import inflacion from './paginas/inflacion.js';
 import laboral from './paginas/laboral.js';
+import jovenes from './paginas/jovenes.js';
 import monetaria from './paginas/monetaria.js';
 import vivienda from './paginas/vivienda.js';
 import finanzas from './paginas/finanzas.js';
@@ -43,24 +44,26 @@ python servidor.py</pre>
 };
 const APRENDER = { guias, informe, insertar, sobre };
 const PAGINAS = ESTATICO
-  ? { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio: laboratorioPublico, ...APRENDER }
-  : { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio, investigacion: centro, biblioteca, fichas, ...APRENDER };
+  ? { portada, mapa, inflacion, laboral, jovenes, monetaria, vivienda, finanzas, laboratorio: laboratorioPublico, ...APRENDER }
+  : { portada, mapa, inflacion, laboral, jovenes, monetaria, vivienda, finanzas, laboratorio, investigacion: centro, biblioteca, fichas, ...APRENDER };
 const ORDEN = Object.keys(PAGINAS);
 if (ESTATICO) {
   // Sin servidor: fuera el centro de investigación (es personal) y el botón de actualizar (se actualiza solo cada día).
   document.querySelectorAll('.nav-grupo:not(.nav-publico), #nav [data-page="investigacion"], #nav [data-page="biblioteca"], #nav [data-page="fichas"]').forEach((el) => el.remove());
-  document.querySelectorAll('#nav a i').forEach((i, k) => { i.textContent = String(k + 1).padStart(2, '0'); }); // numeración seguida
   const boton = document.getElementById('btn-actualizar');
   boton.insertAdjacentHTML('afterend', '<p class="nota-publica">Versión pública: los datos se descargan solos cada mañana de INE, Eurostat y BCE.</p>');
   boton.remove();
 }
-const ICONOS = { portada: '◈', mapa: '🗺', inflacion: '%', laboral: '⚒', monetaria: '€', vivienda: '⌂', finanzas: '⚖', laboratorio: '∑',
+// Numeración seguida del menú (en la versión pública no quedan huecos por las páginas quitadas).
+document.querySelectorAll('#nav a i').forEach((i, k) => { i.textContent = String(k + 1).padStart(2, '0'); });
+const ICONOS = { portada: '◈', mapa: '🗺', inflacion: '%', laboral: '⚒', jovenes: '◔', monetaria: '€', vivienda: '⌂', finanzas: '⚖', laboratorio: '∑',
   investigacion: '◎', biblioteca: '▤', fichas: '◧', guias: '✎', informe: '⎙', insertar: '⧉', sobre: 'ⓘ' };
 const TECLA = (i) => (i < 9 ? `Tecla ${i + 1}` : i === 9 ? 'Tecla 0' : '');
 const FIJOS = ['ES', 'EA'];
 
 // Página donde se explica cada indicador (para la paleta de comandos y el ticker).
 const PAGINA_DE = (id) => (/^(ipc|iapc)/.test(id) ? 'inflacion'
+  : /^(ninis|empleo_jovenes|abandono|titulados|competencias|especialistas|empresas_ia|ia_)/.test(id) ? 'jovenes'
   : /paro/.test(id) ? 'laboral'
     : /^(bce|euribor|tipo_hipotecas|m3)/.test(id) ? 'monetaria'
       : /^(ipv|precio_vivienda|etcl)/.test(id) ? 'vivienda'

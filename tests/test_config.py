@@ -17,7 +17,7 @@ class Catalogo(unittest.TestCase):
             with self.subTest(indicador=i["id"]):
                 for campo in ("id", "nombre", "unidad", "frecuencia", "fuente"):
                     self.assertTrue(i.get(campo), f"Falta «{campo}»")
-                self.assertIn(i["frecuencia"], ("M", "Q"))
+                self.assertIn(i["frecuencia"], ("M", "Q", "A"))
                 self.assertIn(i["fuente"], ("INE", "EUROSTAT", "BCE"))
 
     def test_cada_fuente_sabe_donde_buscar(self):

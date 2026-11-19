@@ -7,8 +7,8 @@ import { sinMovimiento } from './efectos.js';
 const oscuro = () => document.documentElement.dataset.tema !== 'claro';
 
 // Colores por país. Se rellenan según el tema (ver aplicarTema).
-const PAISES_CLARO = { ES: '#C8102E', EA: '#003399', DE: '#2E3440', FR: '#4C78A8', IT: '#2A9D8F', PT: '#E9C46A' };
-const PAISES_OSCURO = { ES: '#ff3b5c', EA: '#5b8cff', DE: '#cbd5e1', FR: '#38bdf8', IT: '#2dd4bf', PT: '#fbbf24' };
+const PAISES_CLARO = { ES: '#C8102E', EA: '#003399', UE: '#6D28D9', DE: '#2E3440', FR: '#4C78A8', IT: '#2A9D8F', PT: '#E9C46A' };
+const PAISES_OSCURO = { ES: '#ff3b5c', EA: '#5b8cff', UE: '#c084fc', DE: '#cbd5e1', FR: '#38bdf8', IT: '#2dd4bf', PT: '#fbbf24' };
 export const COLORES = { ...PAISES_OSCURO };
 export const PALETA = ['#003399', '#C8102E', '#2A9D8F', '#E9A23B', '#4C78A8', '#6C757D', '#8E44AD'];
 
@@ -36,6 +36,7 @@ export const fmt = (v, d = 1) => (v == null || Number.isNaN(v) ? '—'
 
 export function fechaTexto(f, frecuencia = 'M') {
   const [a, m] = f.split('-').map(Number);
+  if (frecuencia === 'A') return String(a);
   return frecuencia === 'Q' ? `T${Math.floor((m - 1) / 3) + 1} ${a}` : `${MESES[m - 1]} ${a}`;
 }
 

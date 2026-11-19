@@ -34,7 +34,7 @@ PAISES_UE = {
 }
 
 # Nombre de cualquier código que pueda aparecer en la base de datos.
-NOMBRES = {**PAISES_UE, "EA": "Zona euro"}
+NOMBRES = {**PAISES_UE, "EA": "Zona euro", "UE": "Unión Europea (27)"}
 
 # Eurostat usa códigos distintos para la zona euro según la tabla y el año
 # (en 2026 entró Bulgaria: EA20 → EA21). Se prueba en este orden y se usa el primero con datos.
@@ -95,7 +95,40 @@ EUROSTAT = [
     {"id": "saldo_publico", "nombre": "Saldo público (% del PIB)", "unidad": "% del PIB", "frecuencia": "Q",
      "nota": "Capacidad (+) o necesidad (−) de financiación de las administraciones públicas: negativo = déficit. Corregido de estacionalidad y calendario.",
      "tramos": [{"tabla": "gov_10q_ggnfa", "filtros": {"unit": "PC_GDP", "sector": "S13", "na_item": "B9", "s_adj": "SCA"}}]},
+    # Jóvenes, empleo y tecnología (anuales; la referencia europea es la UE-27, no la zona euro)
+    {"id": "ninis", "nombre": "Jóvenes que ni estudian ni trabajan (15-29 años)", "unidad": "% de los jóvenes de 15 a 29 años", "frecuencia": "A",
+     "nota": "Tasa NEET: no tienen empleo y no reciben educación ni formación (ni reglada ni no reglada).",
+     "tramos": [{"tabla": "edat_lfse_20", "filtros": {"sex": "T", "age": "Y15-29", "training": "NO_FE_NO_NFE", "wstatus": "NEMP", "unit": "PC"}}]},
+    {"id": "empleo_jovenes", "nombre": "Tasa de empleo de los jóvenes (15-24 años)", "unidad": "% de la población de 15 a 24 años", "frecuencia": "A",
+     "nota": "Jóvenes con empleo sobre el total de jóvenes de esa edad (incluidos los que estudian).",
+     "tramos": [{"tabla": "lfsi_emp_a", "filtros": {"sex": "T", "age": "Y15-24", "unit": "PC_POP", "indic_em": "EMP_LFS"}}]},
+    {"id": "abandono_escolar", "nombre": "Abandono temprano de la educación (18-24 años)", "unidad": "% de los jóvenes de 18 a 24 años", "frecuencia": "A",
+     "nota": "Jóvenes que solo tienen hasta la ESO y no siguen estudiando ni formándose.",
+     "tramos": [{"tabla": "edat_lfse_14", "filtros": {"sex": "T", "age": "Y18-24", "wstatus": "POP", "unit": "PC"}}]},
+    {"id": "titulados_superiores", "nombre": "Jóvenes con estudios superiores (25-34 años)", "unidad": "% de la población de 25 a 34 años", "frecuencia": "A",
+     "nota": "Con formación profesional de grado superior, grado universitario, máster o doctorado (CINE 5-8).",
+     "tramos": [{"tabla": "edat_lfse_03", "filtros": {"sex": "T", "age": "Y25-34", "isced11": "ED5-8", "unit": "PC"}}]},
+    {"id": "competencias_digitales_jovenes", "nombre": "Jóvenes con competencias digitales básicas o superiores (16-24 años)",
+     "unidad": "% de los jóvenes de 16 a 24 años", "frecuencia": "A",
+     "tramos": [{"tabla": "isoc_sk_dskl_i21", "filtros": {"indic_is": "I_DSK2_BAB", "unit": "PC_IND", "ind_type": "Y16_24"}}]},
+    {"id": "especialistas_tic", "nombre": "Especialistas en tecnologías de la información (TIC)", "unidad": "% del empleo total", "frecuencia": "A",
+     "tramos": [{"tabla": "isoc_sks_itspt", "filtros": {"unit": "PC_EMP"}}]},
+    {"id": "empresas_ia", "nombre": "Empresas que usan inteligencia artificial", "unidad": "% de las empresas de 10 o más empleados", "frecuencia": "A",
+     "nota": "Usan al menos una tecnología de IA (análisis de textos, reconocimiento de voz o imágenes, aprendizaje automático, IA generativa…).",
+     "tramos": [{"tabla": "isoc_eb_ai", "filtros": {"size_emp": "GE10", "unit": "PC_ENT", "indic_is": "E_AI_TANY", "nace_r2": "C10-S951_X_K"}}]},
+    {"id": "ia_generativa_jovenes", "nombre": "Jóvenes que usan IA generativa (16-24 años)", "unidad": "% de los jóvenes de 16 a 24 años", "frecuencia": "A",
+     "nota": "Han usado herramientas de IA generativa (ChatGPT, Gemini, Copilot…) en los últimos 3 meses. Se pregunta desde 2025.",
+     "tramos": [{"tabla": "isoc_ai_iaiu", "filtros": {"ind_type": "Y16_24", "indic_is": "I_IUAI", "unit": "PC_IND"}}]},
+    {"id": "ia_generativa_total", "nombre": "Población que usa IA generativa (16-74 años)", "unidad": "% de la población de 16 a 74 años", "frecuencia": "A",
+     "nota": "Han usado herramientas de IA generativa en los últimos 3 meses. Se pregunta desde 2025.",
+     "tramos": [{"tabla": "isoc_ai_iaiu", "filtros": {"ind_type": "IND_TOTAL", "indic_is": "I_IUAI", "unit": "PC_IND"}}]},
+    {"id": "ia_generativa_trabajo", "nombre": "Jóvenes que usan IA generativa para trabajar (16-24 años)", "unidad": "% de los jóvenes de 16 a 24 años", "frecuencia": "A",
+     "nota": "Han usado IA generativa con fines profesionales en los últimos 3 meses. Se pregunta desde 2025.",
+     "tramos": [{"tabla": "isoc_ai_iaiu", "filtros": {"ind_type": "Y16_24", "indic_is": "I_IUAIWP", "unit": "PC_IND"}}]},
 ]
+
+# La Unión Europea (27) como referencia para los indicadores anuales que no tienen dato de la zona euro.
+UE_EUROSTAT = "EU27_2020"
 
 # BCE: los tipos oficiales son diarios (D); se guarda el último valor de cada mes.
 BCE = [

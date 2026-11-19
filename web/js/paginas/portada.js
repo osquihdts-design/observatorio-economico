@@ -67,7 +67,7 @@ function trazasDiferencial(nombre, puntos, eje) {
 
 /** Puntuación 0–100 de cada país en cada eje: % de los demás países de la UE a los que supera. */
 function puntuaciones(resumen, nombres) {
-  const ue = Object.keys(nombres).filter((c) => c !== 'EA');
+  const ue = Object.keys(nombres).filter((c) => c !== 'EA' && c !== 'UE');
   const salida = {};
   for (const r of RADAR) {
     const filas = resumen.filter((f) => f.indicador === r.id && ue.includes(f.pais));

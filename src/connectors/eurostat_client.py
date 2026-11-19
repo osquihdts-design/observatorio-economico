@@ -52,7 +52,9 @@ def parsear_jsonstat(j: dict) -> tuple[dict[str, list[tuple[str, float, str | No
 
 
 def _fecha(periodo: str) -> date:
-    """'2026-10' → 1 oct 2026;  '2026-Q3' → 1 jul 2026."""
+    """'2026-10' → 1 oct 2026;  '2026-Q3' → 1 jul 2026;  '2025' (anual) → 1 ene 2025."""
+    if len(periodo) == 4:
+        return date(int(periodo), 1, 1)
     if "-Q" in periodo:
         anio, q = periodo.split("-Q")
         return date(int(anio), (int(q) - 1) * 3 + 1, 1)
@@ -65,6 +67,8 @@ def _desde(fecha: str, frecuencia: str) -> str:
     if frecuencia == "Q":
         anio, mes = fecha.split("-")
         return f"{anio}-Q{(int(mes) - 1) // 3 + 1}"
+    if frecuencia == "A":
+        return fecha[:4]
     return fecha
 
 
@@ -76,7 +80,7 @@ def descargar_indicador(ind: dict, desde: str = config.FECHA_INICIO) -> list[Obs
     for tramo in ind["tramos"]:
         inicio = max(desde, tramo.get("desde", desde))
         params = [("format", "JSON"), ("lang", "EN"), ("sinceTimePeriod", _desde(inicio, ind["frecuencia"]))]
-        params += list(tramo["filtros"].items()) + [("geo", p) for p in paises + config.ZONA_EURO_EUROSTAT]
+        params += list(tramo["filtros"].items()) + [("geo", p) for p in paises + config.ZONA_EURO_EUROSTAT + [config.UE_EUROSTAT]]
         datos, actualizado = parsear_jsonstat(json.loads(descargar(URL.format(tramo["tabla"]), params)))
         if actualizado:
             actualizaciones.append(actualizado)
@@ -88,6 +92,8 @@ def descargar_indicador(ind: dict, desde: str = config.FECHA_INICIO) -> list[Obs
                 if geo != euro:
                     continue
                 pais = "EA"
+            elif geo == config.UE_EUROSTAT:
+                pais = "UE"
             else:
                 pais = geo
             for periodo, valor, estado in serie:
