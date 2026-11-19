@@ -1,5 +1,5 @@
 // Estructura general: barra lateral, ticker, reloj, tema, paleta de comandos, atajos y navegación con transiciones.
-import { get, post } from './api.js';
+import { ESTATICO, REPOSITORIO, get, post } from './api.js';
 import { aplicarTema, cerrarVisor, COLORES, fmt } from './graficos.js';
 import { avisar, contar, iniciarFondo, iniciarTarjetas, revelar, transicion } from './efectos.js';
 import { iniciarAtajos, iniciarPaleta } from './paleta.js';
@@ -17,8 +17,36 @@ import biblioteca from './paginas/biblioteca.js';
 import fichas from './paginas/fichas.js';
 import { cargarTaxonomia, editarRecurso, tax } from './investigacion.js';
 
-const PAGINAS = { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio, investigacion: centro, biblioteca, fichas };
+// En la versión pública (sin servidor), el laboratorio explica cómo usarlo en local.
+const laboratorioPublico = {
+  titulo: 'Laboratorio econométrico',
+  render(nodo) {
+    nodo.innerHTML = `
+      <header class="cabecera"><span class="etiqueta">MCO · Newey-West · ADF · Hodrick-Prescott</span>
+        <h1>Laboratorio <span class="degradado">econométrico</span></h1>
+        <p>Regresiones con errores robustos, test de estacionariedad, filtro HP, correlaciones con retardos y exportación a Excel con citas APA.</p></header>
+      <section class="card solo-local">
+        <h2>Disponible en la versión de escritorio</h2>
+        <p>El laboratorio hace los cálculos con el motor econométrico en Python del proyecto, así que no funciona en esta web pública.
+        Para usarlo, descarga el proyecto (solo necesitas Python 3.12, sin instalar nada más) y ejecútalo en tu ordenador:</p>
+        <pre class="comando">git clone ${REPOSITORIO}.git
+cd observatorio-economico
+python servidor.py</pre>
+        <p><a class="btn primario" href="${REPOSITORIO}" target="_blank" rel="noopener">Ver el proyecto en GitHub ↗</a></p>
+      </section>`;
+  },
+};
+const PAGINAS = ESTATICO
+  ? { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio: laboratorioPublico }
+  : { portada, mapa, inflacion, laboral, monetaria, vivienda, finanzas, laboratorio, investigacion: centro, biblioteca, fichas };
 const ORDEN = Object.keys(PAGINAS);
+if (ESTATICO) {
+  // Sin servidor: fuera el centro de investigación (es personal) y el botón de actualizar (se actualiza solo cada día).
+  document.querySelectorAll('.nav-grupo, #nav [data-page="investigacion"], #nav [data-page="biblioteca"], #nav [data-page="fichas"]').forEach((el) => el.remove());
+  const boton = document.getElementById('btn-actualizar');
+  boton.insertAdjacentHTML('afterend', '<p class="nota-publica">Versión pública: los datos se descargan solos cada mañana de INE, Eurostat y BCE.</p>');
+  boton.remove();
+}
 const ICONOS = { portada: '◈', mapa: '🗺', inflacion: '%', laboral: '⚒', monetaria: '€', vivienda: '⌂', finanzas: '⚖', laboratorio: '∑',
   investigacion: '◎', biblioteca: '▤', fichas: '◧' };
 const TECLA = (i) => (i < 9 ? `Tecla ${i + 1}` : i === 9 ? 'Tecla 0' : '');
@@ -153,13 +181,14 @@ async function seguirActualizacion() {
 }
 
 async function actualizar() {
+  if (ESTATICO) { avisar('En la versión pública los datos se actualizan solos cada mañana.', 'info', 3500); return; }
   if ($('#btn-actualizar').disabled) return;
   await post('actualizar', {});
   avisar('Descargando datos oficiales…', 'info', 2500);
   sondeo = 0;
   seguirActualizacion();
 }
-$('#btn-actualizar').addEventListener('click', actualizar);
+$('#btn-actualizar')?.addEventListener('click', actualizar);
 
 // ---------------------------------------------------------------- Modo académico
 const academico = $('#academico');
@@ -214,8 +243,10 @@ function comandos() {
   const add = (c) => lista.push({ orden: orden++, ...c });
   ORDEN.forEach((p, i) => add({ tipo: 'página', icono: ICONOS[p], titulo: PAGINAS[p].titulo, detalle: TECLA(i),
     claves: p, accion: () => { location.hash = `#/${p}`; } }));
-  add({ tipo: 'investigación', icono: '+', titulo: 'Nuevo recurso de investigación', detalle: 'Dato, informe, teoría o predicción',
-    claves: 'crear anadir recurso nota', accion: () => editarRecurso(null, (r) => { location.hash = `#/biblioteca/${r.id}`; }) });
+  if (!ESTATICO) {
+    add({ tipo: 'investigación', icono: '+', titulo: 'Nuevo recurso de investigación', detalle: 'Dato, informe, teoría o predicción',
+      claves: 'crear anadir recurso nota', accion: () => editarRecurso(null, (r) => { location.hash = `#/biblioteca/${r.id}`; }) });
+  }
   for (const f of tax()?.fichas || []) {
     add({ tipo: 'ficha', icono: '◧', titulo: f.titulo, detalle: 'Ficha de investigación', claves: `ficha ${f.id}`, accion: () => { location.hash = `#/fichas/${f.id}`; } });
   }
@@ -241,7 +272,7 @@ function comandos() {
   }
   add({ tipo: 'acción', icono: '◐', titulo: 'Cambiar tema claro / oscuro', detalle: 'Tecla T', claves: 'tema oscuro claro modo', accion: alternarTema });
   add({ tipo: 'acción', icono: '🎓', titulo: 'Modo explicación académica', detalle: 'Tecla A', claves: 'academico explicacion formulas', accion: () => ponerAcademico(!academico.checked) });
-  add({ tipo: 'acción', icono: '⟳', titulo: 'Actualizar los datos ahora', detalle: 'Tecla U', claves: 'actualizar descargar datos', accion: actualizar });
+  if (!ESTATICO) add({ tipo: 'acción', icono: '⟳', titulo: 'Actualizar los datos ahora', detalle: 'Tecla U', claves: 'actualizar descargar datos', accion: actualizar });
   add({ tipo: 'acción', icono: '⌨', titulo: 'Ver atajos de teclado', detalle: 'Tecla ?', claves: 'atajos teclado ayuda', accion: abrirAyuda });
   add({ tipo: 'enlace', icono: '⧉', titulo: 'Abrir el código en GitHub', claves: 'github codigo repositorio',
     accion: () => window.open('https://github.com/osquihdts-design/observatorio-economico', '_blank', 'noopener') });
@@ -259,7 +290,7 @@ $('#visor').addEventListener('click', (e) => { if (e.target.id === 'visor') cerr
 
 iniciarAtajos({
   paleta: paleta.abrir,
-  pagina: (n) => { location.hash = `#/${ORDEN[n]}`; },
+  pagina: (n) => { if (ORDEN[n]) location.hash = `#/${ORDEN[n]}`; },
   academico: () => ponerAcademico(!academico.checked),
   tema: alternarTema,
   actualizar,
@@ -321,13 +352,13 @@ window.addEventListener('hashchange', pintar);
   aplicarRango();
   pintarPaises();
   const e = await pintarEstado();
-  if (e.actualizacion.activa || e.vacia) {
+  if (!ESTATICO && (e.actualizacion.activa || e.vacia)) {
     sondeo = 0;
     aviso(e.vacia ? 'Descargando los datos por primera vez. Tarda unos segundos…' : '');
     seguirActualizacion();
   }
   await cargarTicker().catch(() => {});
-  cargarTaxonomia().catch(() => {}); // para que la paleta encuentre recursos y fichas
+  if (!ESTATICO) cargarTaxonomia().catch(() => {}); // para que la paleta encuentre recursos y fichas
   pintar();
   if (!leer('bienvenida', false)) {
     setTimeout(() => avisar('Consejo: pulsa Ctrl+K para buscar cualquier cosa, o ? para ver los atajos', 'info', 7000), 1500);

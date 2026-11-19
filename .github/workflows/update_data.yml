@@ -1,11 +1,24 @@
-# Descarga cada día los datos de INE, Eurostat y BCE y los publica como archivo descargable
-# (pestaña «Actions» → última ejecución → «Artifacts»). También se puede lanzar a mano.
-name: Actualizar datos
+# Cada día descarga los datos de INE, Eurostat y BCE, los publica como archivo descargable
+# (pestaña «Actions» → última ejecución → «Artifacts») y actualiza la web pública en GitHub Pages:
+# https://osquihdts-design.github.io/observatorio-economico/
+# También se ejecuta al subir cambios a main (para publicar el código nuevo) y se puede lanzar a mano.
+name: Actualizar datos y web
 
 on:
   schedule:
     - cron: "30 7 * * *"  # todos los días a las 07:30 UTC (después de las publicaciones de la mañana)
+  push:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   actualizar:
@@ -19,13 +32,14 @@ jobs:
       - name: Tests
         run: python -m unittest
       - name: Descargar datos
-        # Si alguna fuente falla, el script termina con error y la ejecución sale en rojo para avisar.
+        # Si alguna fuente falla, el paso sale en rojo para avisar, pero la web se publica con lo que haya.
+        id: datos
+        continue-on-error: true
         run: python scripts/actualizar_datos.py
       - name: Ejemplo de laboratorio (comprueba el motor econométrico con datos reales)
-        if: always()
+        continue-on-error: true
         run: python scripts/ejemplo_laboratorio.py
-      - name: Publicar los datos
-        if: always()
+      - name: Publicar los datos como archivo
         uses: actions/upload-artifact@v7
         with:
           name: datos-observatorio
@@ -35,3 +49,23 @@ jobs:
             data/processed/ejemplo_curva_phillips.xlsx
           if-no-files-found: warn
           retention-days: 30
+      - name: Generar la web pública
+        run: python scripts/publicar_web.py
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - name: Avisar si falló la descarga
+        if: steps.datos.outcome == 'failure'
+        run: |
+          echo "::warning::Alguna fuente falló al descargar: la web se ha publicado con los datos disponibles."
+
+  publicar:
+    needs: actualizar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v5

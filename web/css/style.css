@@ -149,6 +149,11 @@ kbd {
   background: linear-gradient(var(--accent), var(--accent-2)); box-shadow: 0 0 12px var(--accent);
 }
 
+.nota-publica { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin: 4px 0 0; }
+.solo-local p { color: var(--muted); line-height: 1.6; max-width: 72ch; }
+.solo-local pre.comando { font: 13px/1.6 var(--mono); background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 10px; padding: 12px 14px; overflow-x: auto; }
+.solo-local .btn { text-decoration: none; display: inline-block; }
 .nav-grupo { display: block; margin: 12px 10px 4px; font: 600 10px var(--mono); text-transform: uppercase; letter-spacing: 0.14em; color: var(--tenue); }
 .side-block { border-top: 1px solid var(--line); padding: 13px 6px 4px; margin-top: 10px; }
 .side-block h3 { margin: 0 0 9px; font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--tenue);

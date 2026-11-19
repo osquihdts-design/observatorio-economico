@@ -3,6 +3,10 @@
 Panel interactivo de datos económicos oficiales de **España frente a Europa**, con un
 **laboratorio econométrico** pensado para trabajos de clase y el TFG.
 
+**🌐 Versión pública: <https://osquihdts-design.github.io/observatorio-economico/>** — se actualiza sola cada mañana
+con GitHub Actions (`scripts/publicar_web.py` guarda los datos como JSON). Incluye todas las páginas de datos y el
+mapa; el laboratorio econométrico y el centro de investigación solo están en la versión que se ejecuta en tu ordenador.
+
 - Datos reales del **INE**, **Eurostat** y el **Banco Central Europeo**, descargados de sus APIs públicas (sin claves ni registro).
 - 26 indicadores: inflación, paro, PIB, vivienda, salarios, tipos de interés, hipotecas, dinero, prima de riesgo, deuda y déficit públicos.
 - Comparación con Alemania, Francia, Italia, Portugal y la zona euro, y **mapa animado de los 27 países de la UE**.
