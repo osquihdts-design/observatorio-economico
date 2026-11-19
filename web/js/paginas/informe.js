@@ -8,7 +8,7 @@ import { esc } from '../investigacion.js';
 import { CITA_WEB } from './sobre.js';
 
 // Colores pensados para papel (siempre claros, aunque la web esté en tema oscuro).
-const COLOR_PAPEL = { ES: '#C8102E', EA: '#003399', DE: '#2E3440', FR: '#4C78A8', IT: '#2A9D8F', PT: '#E9A23B' };
+const COLOR_PAPEL = { ES: '#C8102E', EA: '#003399', UE: '#6D28D9', DE: '#2E3440', FR: '#4C78A8', IT: '#2A9D8F', PT: '#E9A23B' };
 const EXTRA = ['#8E44AD', '#6C757D', '#16A085', '#D35400'];
 const AUTORES = { INE: 'Instituto Nacional de Estadística', EUROSTAT: 'Eurostat', BCE: 'Banco Central Europeo' };
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -16,6 +16,7 @@ const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', '
 const SECCIONES = [
   { id: 'inflacion', titulo: 'Inflación', indicadores: ['iapc_general', 'iapc_subyacente'] },
   { id: 'empleo', titulo: 'Mercado laboral', indicadores: ['paro', 'paro_jovenes'] },
+  { id: 'jovenes', titulo: 'Jóvenes, empleo y tecnología', indicadores: ['ninis', 'empleo_jovenes', 'competencias_digitales_jovenes', 'ia_generativa_jovenes', 'empresas_ia'] },
   { id: 'crecimiento', titulo: 'Crecimiento económico', indicadores: ['pib_var'] },
   { id: 'tipos', titulo: 'Tipos de interés y financiación', indicadores: ['bce_deposito', 'euribor_12m', 'tipo_hipotecas'] },
   { id: 'vivienda', titulo: 'Vivienda', indicadores: ['precio_vivienda_var'] },
@@ -46,6 +47,7 @@ const ORDINAL = ['primer', 'segundo', 'tercer', 'cuarto'];
 /** '2026-10-01' → «octubre de 2026» · trimestral → «tercer trimestre de 2026» */
 function cuandoLargo(fecha, frecuencia) {
   const [a, m] = fecha.split('-').map(Number);
+  if (frecuencia === 'A') return String(a);
   return frecuencia === 'Q' ? `${ORDINAL[Math.floor((m - 1) / 3)]} trimestre de ${a}` : `${MESES[m - 1]} de ${a}`;
 }
 // «de octubre de 2026» / «del tercer trimestre de 2026» · «en octubre…» / «en el tercer trimestre…»
@@ -77,15 +79,17 @@ function comentario(info, datos, nombreBase, previsiones) {
       : `, ${fmt(Math.abs(dif), dec)} ${pp} ${dif > 0 ? 'más' : 'menos'} que un año antes (${val(anterior[1])})`;
   }
   frases.push(`${frase}.`);
-  if (principal !== 'EA' && datos.EA?.length) {
-    const ea = datos.EA.filter(([f]) => f <= fu).at(-1);
+  // Referencia europea: la zona euro o, en los indicadores anuales que no la tienen, la UE-27.
+  const ref = datos.EA?.length ? 'EA' : datos.UE?.length ? 'UE' : null;
+  if (ref && principal !== ref) {
+    const ea = datos[ref].filter(([f]) => f <= fu).at(-1);
     if (ea) {
       const dif = vu - ea[1];
-      frases.push(`En la zona euro fue del ${val(ea[1])}, de modo que ${nombreBase(principal)} queda `
+      frases.push(`En ${ref === 'EA' ? 'la zona euro' : 'la Unión Europea'} fue del ${val(ea[1])}, de modo que ${nombreBase(principal)} queda `
         + `${Math.abs(dif) < 0.05 ? 'prácticamente en el mismo nivel' : `${fmt(Math.abs(dif), dec)} ${pp} ${dif > 0 ? 'por encima' : 'por debajo'}`}.`);
     }
   }
-  const otros = Object.keys(datos).filter((p) => !['ES', 'EA'].includes(p) && datos[p].length);
+  const otros = Object.keys(datos).filter((p) => !['ES', 'EA', 'UE'].includes(p) && datos[p].length);
   if (otros.length > 1) {
     const ult = otros.map((p) => [p, datos[p].at(-1)[1]]).sort((a, b) => b[1] - a[1]);
     frases.push(`Entre los demás países comparados, el valor más alto corresponde a ${nombrePais(ult[0][0])} (${val(ult[0][1])}) y el más bajo, a ${nombrePais(ult.at(-1)[0])} (${val(ult.at(-1)[1])}).`);
@@ -166,7 +170,7 @@ export default {
       doc.innerHTML = '<div class="carga"><div class="esqueleto e1"></div><div class="esqueleto e2"></div></div>';
       try {
         const ids = elegidas.flatMap((s) => s.indicadores).filter((id) => ctx.indicador(id));
-        const paises = ctx.paises.slice(0, 6);
+        const paises = [...ctx.paises.slice(0, 6), 'UE'];
         const [datos, previsiones] = await Promise.all([series(ids, { paises, desde: ctx.desde, hasta: ctx.hasta }), cargarPrevisiones()]);
         const usadas = new Map();
         const resumen = [];

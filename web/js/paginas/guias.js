@@ -127,6 +127,10 @@ y añade debajo: n, R² ajustado, tipo de errores y periodo muestral.
 | Cuánto vale hoy el dinero de otro año | Índice del IPC (calculadora) | [Inflación](#/inflacion) |
 | Cómo va el empleo | Tasa de paro armonizada (Eurostat, mensual y comparable entre países) | [Mercado laboral](#/laboral) |
 | La situación de los jóvenes | Paro de menores de 25 años | [Mercado laboral](#/laboral) · [Mapa](#/mapa/paro_jovenes) |
+| Cuántos jóvenes están descolgados | Jóvenes que ni estudian ni trabajan (tasa NEET) | [Jóvenes y tecnología](#/jovenes) · [Mapa](#/mapa/ninis) |
+| Si los jóvenes están preparados para la economía digital | Competencias digitales (16-24) y estudios superiores (25-34) | [Jóvenes y tecnología](#/jovenes) |
+| Cuánto usan los jóvenes la inteligencia artificial | Uso de IA generativa por edad y para trabajar (desde 2025) | [Jóvenes y tecnología](#/jovenes) · [Mapa](#/mapa/ia_generativa_jovenes) |
+| Cuánto ha entrado la IA en las empresas | Empresas que usan inteligencia artificial | [Jóvenes y tecnología](#/jovenes) · [Mapa](#/mapa/empresas_ia) |
 | Si la economía crece | PIB real, variación interanual | [Mapa](#/mapa/pib_var) |
 | Si el BCE sube o baja tipos | Tipo de la facilidad de depósito | [Política monetaria](#/monetaria) |
 | Cuánto cuesta una hipoteca | Euríbor a 12 meses y tipo de las nuevas hipotecas | [Política monetaria](#/monetaria) |

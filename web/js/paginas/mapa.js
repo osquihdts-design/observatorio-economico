@@ -77,6 +77,59 @@ const FICHAS = {
     leer: 'Las reglas europeas fijan un déficit máximo del 3 % del PIB (−3). Más alto (azul) = cuentas más saneadas.',
   },
 };
+// Jóvenes, empleo y tecnología (anuales; referencia: UE-27)
+Object.assign(FICHAS, {
+  ninis: {
+    unidad: '% de los jóvenes de 15 a 29 años', corta: '%', escala: 'malo',
+    que: 'Jóvenes que no tienen empleo y no estudian ni se forman (tasa «NEET»). Mide el riesgo de quedarse descolgado del mercado laboral, mejor que el paro, porque incluye a quienes ya ni buscan trabajo.',
+    leer: 'Cuanto más alto, peor (rojo). La UE se fijó como meta bajar del 9 % en 2030.',
+  },
+  empleo_jovenes: {
+    unidad: '% de la población de 15 a 24 años', corta: '%', escala: 'bueno',
+    que: 'Jóvenes con empleo sobre todos los jóvenes de esa edad, estudien o no.',
+    leer: 'Más alto (azul) = más jóvenes trabajando. Ojo: un valor bajo puede deberse a que muchos estudian, no solo al paro; compáralo con la tasa de ninis.',
+  },
+  abandono_escolar: {
+    unidad: '% de los jóvenes de 18 a 24 años', corta: '%', escala: 'malo', referencia: 9, refTexto: 'Meta UE 2030 (9 %)',
+    que: 'Jóvenes que dejaron de estudiar con, como mucho, la ESO, y no siguen formándose.',
+    leer: 'Cuanto más alto, peor (rojo). La meta europea para 2030 es bajar del 9 %.',
+  },
+  titulados_superiores: {
+    unidad: '% de la población de 25 a 34 años', corta: '%', escala: 'bueno', referencia: 45, refTexto: 'Meta UE 2030 (45 %)',
+    que: 'Jóvenes adultos con FP de grado superior, grado universitario, máster o doctorado.',
+    leer: 'Más alto (azul) = población joven más formada. La meta europea para 2030 es el 45 %.',
+  },
+  competencias_digitales_jovenes: {
+    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'bueno',
+    que: 'Jóvenes con competencias digitales al menos básicas en las cinco áreas que mide la UE: información, comunicación, creación de contenidos, seguridad y resolución de problemas.',
+    leer: 'Más alto (azul) = más jóvenes preparados para un mercado laboral digital.',
+  },
+  especialistas_tic: {
+    unidad: '% del empleo total', corta: '%', escala: 'bueno',
+    que: 'Personas ocupadas como especialistas en tecnologías de la información y la comunicación (programación, sistemas, redes, datos…).',
+    leer: 'Más alto (azul) = economía más tecnológica. La UE aspira a 20 millones de especialistas TIC en 2030.',
+  },
+  empresas_ia: {
+    unidad: '% de las empresas de 10 o más empleados', corta: '%', escala: 'bueno',
+    que: 'Empresas que usan al menos una tecnología de inteligencia artificial (análisis de textos, reconocimiento de voz o imágenes, aprendizaje automático, IA generativa…).',
+    leer: 'Más alto (azul) = más adopción de IA en el tejido empresarial, y más tareas que pueden cambiar.',
+  },
+  ia_generativa_jovenes: {
+    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'bueno',
+    que: 'Jóvenes que usaron herramientas de IA generativa (ChatGPT, Gemini, Copilot…) en los últimos 3 meses. Eurostat lo pregunta desde 2025.',
+    leer: 'Más alto (azul) = uso más extendido. Solo hay un año de datos: compara países, todavía no la evolución.',
+  },
+  ia_generativa_total: {
+    unidad: '% de la población de 16 a 74 años', corta: '%', escala: 'bueno',
+    que: 'Personas que usaron IA generativa en los últimos 3 meses. Eurostat lo pregunta desde 2025.',
+    leer: 'Compáralo con el de los jóvenes para ver la brecha generacional.',
+  },
+  ia_generativa_trabajo: {
+    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'bueno',
+    que: 'Jóvenes que usaron IA generativa con fines profesionales (en el trabajo) en los últimos 3 meses. Eurostat lo pregunta desde 2025.',
+    leer: 'Mide cuánto ha entrado la IA en el trabajo de los jóvenes, no en el ocio o los estudios.',
+  },
+});
 const FRECUENCIA = { M: 'Mensual', Q: 'Trimestral', A: 'Anual' };
 
 /** Ficha por defecto para un indicador nuevo que aún no tenga la suya. */
@@ -105,14 +158,14 @@ function colorEn(escala, t) {
 }
 
 /** Para cada fecha, el último valor conocido de cada país (como mucho 12 periodos atrás, para no inventar). */
-function tablaPorFecha(datos, fechas) {
+function tablaPorFecha(datos, fechas, maxEdad = 12) {
   const tabla = fechas.map(() => ({}));
   for (const [pais, puntos] of Object.entries(datos)) {
     const m = new Map(puntos);
     let ultimo = null, edad = 0;
     fechas.forEach((f, i) => {
       if (m.has(f)) { ultimo = m.get(f); edad = 0; } else edad += 1;
-      if (ultimo != null && edad <= 12) tabla[i][pais] = { v: ultimo, estimado: edad > 0 };
+      if (ultimo != null && edad <= maxEdad) tabla[i][pais] = { v: ultimo, estimado: edad > 0 };
     });
   }
   return tabla;
@@ -129,11 +182,14 @@ export default {
     }
     const id = europeos.some((i) => i.id === ctx.parametro) ? ctx.parametro : (europeos.find((i) => i.id === 'paro') || europeos[0]).id;
     const info = ctx.indicador(id);
-    const datos = (await series([id], { paises: [...UE, 'EA'], desde: '2000-01-01' }))[id] || {};
+    const datos = (await series([id], { paises: [...UE, 'EA', 'UE'], desde: '2000-01-01' }))[id] || {};
+    // Referencia europea: la zona euro si la tabla la tiene; si no (indicadores anuales de jóvenes y tecnología), la UE-27.
+    const REF = datos.EA?.length ? 'EA' : datos.UE?.length ? 'UE' : null;
+    const nombreRef = REF === 'UE' ? 'Unión Europea (27)' : 'Zona euro';
     if (!ctx.vigente()) return;
 
     const fechas = [...new Set(Object.values(datos).flatMap((s) => s.map((p) => p[0])))].sort();
-    const tabla = tablaPorFecha(datos, fechas);
+    const tabla = tablaPorFecha(datos, fechas, info.frecuencia === 'A' ? 1 : 12);
     const todos = UE.flatMap((p) => (datos[p] || []).map((x) => x[1])).sort((a, b) => a - b);
     const ficha = fichaDe(info);
     let zmin = percentil(todos, 0.02), zmax = percentil(todos, 0.98);
@@ -289,11 +345,14 @@ export default {
       $('[data-fecha]').textContent = fechaTexto(fecha, info.frecuencia);
       const puesto = orden.indexOf('ES') + 1;
       const media = orden.length ? orden.reduce((s, p) => s + fila[p].v, 0) / orden.length : null;
-      const ea = (datos.EA || []).filter((x) => x[0] <= fecha).at(-1);
+      const ea = (datos[REF] || []).filter((x) => x[0] <= fecha).at(-1);
+      // Si Eurostat publica el dato oficial de la UE-27, se usa ese (ponderado) en vez de la media simple de los 27.
+      const ueOficial = REF !== 'UE' ? (datos.UE || []).find((x) => x[0] === fecha) : null;
       const elegido = foco !== 'ES' && fila[foco] ? ` · <span>${ctx.nombrePais(foco)}: <strong>${conUnidad(fila[foco].v)}</strong></span>` : '';
       $('[data-resumen]').innerHTML = `${puesto ? `<span>España: <strong>${conUnidad(fila.ES.v)}</strong> · <strong>${puesto}.º</strong> más alto de ${orden.length}</span>` : ''}
-        ${media != null ? `<span title="Media de los países con dato, sin ponderar por tamaño">Media de la UE: <strong>${conUnidad(media)}</strong></span>` : ''}
-        ${ea ? `<span>Zona euro: <strong>${conUnidad(ea[1])}</strong></span>` : ''}${elegido}`;
+        ${ueOficial ? `<span title="Dato oficial de Eurostat para el conjunto de la UE (ponderado por población)">Unión Europea (27): <strong>${conUnidad(ueOficial[1])}</strong></span>`
+          : media != null ? `<span title="Media de los países con dato, sin ponderar por tamaño">Media simple de la UE: <strong>${conUnidad(media)}</strong></span>` : ''}
+        ${ea ? `<span>${nombreRef}: <strong>${conUnidad(ea[1])}</strong></span>` : ''}${elegido}`;
     }
 
     const capaGeo = () => ({
@@ -464,7 +523,7 @@ export default {
     // ---- Historia del país elegido
     const hist = tarjeta({
       titulo: 'Historia del país elegido',
-      sub: 'Pulsa un país en el mapa o en la clasificación. Siempre se compara con España y la zona euro.',
+      sub: 'Pulsa un país en el mapa o en la clasificación. Siempre se compara con España y con Europa (zona euro o UE-27).',
       fuente: `Eurostat (${info.nombre})`,
     });
     hist.grafico.style.height = '340px';
@@ -478,7 +537,7 @@ export default {
         nombres[ctx.nombrePais(foco)] = datos[foco];
       }
       if (datos.ES) { trazas.push(linea('España', datos.ES, COLORES.ES, { sufijo, line: { width: foco === 'ES' ? 2.8 : 2.2 } })); nombres.España = datos.ES; }
-      if (datos.EA) { trazas.push(linea('Zona euro', datos.EA, COLORES.EA, { sufijo, line: { dash: 'dot' } })); nombres['Zona euro'] = datos.EA; } else fuera.push('EA');
+      if (REF) { trazas.push(linea(nombreRef, datos[REF], COLORES[REF], { sufijo, line: { dash: 'dot' } })); nombres[nombreRef] = datos[REF]; }
       hist.el.querySelector('h2').textContent = foco === 'ES' ? 'Historia: España frente a la zona euro' : `Historia: ${ctx.nombrePais(foco)} frente a España`;
       const marca = fechas[indice];
       const base = layout();
@@ -489,7 +548,7 @@ export default {
         annotations.push({ xref: 'paper', x: 0, y: ficha.referencia, text: ficha.refTexto, showarrow: false, xanchor: 'left', yanchor: 'bottom', font: { size: 11, color: '#94a3b8' } });
       }
       const previstas = await trazasPrevision(id, ['ES', 'EA', foco], sufijo);
-      hist.el.querySelector('.sub').textContent = `Pulsa un país en el mapa o en la clasificación. Siempre se compara con España y la zona euro.${previstas.length ? ` ${NOTA_PREVISIONES}` : ''}`;
+      hist.el.querySelector('.sub').textContent = `Pulsa un país en el mapa o en la clasificación. Siempre se compara con España y con Europa (zona euro o UE-27).${previstas.length ? ` ${NOTA_PREVISIONES}` : ''}`;
       dibujar(hist.grafico, [...trazas, ...previstas], {
         shapes, annotations,
         yaxis: { ...base.yaxis, title: { text: ficha.unidad, font: { size: 12 } }, ticksuffix: sufijo },
