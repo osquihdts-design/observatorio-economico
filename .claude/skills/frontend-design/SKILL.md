@@ -31,10 +31,11 @@ pero cuidada al detalle.
 - Escala clara con pesos distintos (500 / 600 / 700) y títulos con letra algo apretada
   (`letter-spacing: -0.02em`). Las cifras van con `font-variant-numeric: tabular-nums` (ya
   está en `:root`) para que las columnas cuadren.
-- Texto secundario en `--muted`. **El contraste mínimo es AA (4,5:1 en texto normal)**: es una
-  decisión del proyecto y está por encima de «gris claro para que quede elegante». `--tenue` no
-  llega a 4,5:1 en ninguno de los dos temas: úsalo solo en bordes, iconos decorativos o texto
-  grande, nunca en texto pequeño. Comprueba la proporción si inventas un tono.
+- Texto secundario en `--muted` y terciario en `--tenue`. **El contraste mínimo es AA (4,5:1 en
+  texto normal)**: es una decisión del proyecto y está por encima de «gris claro para que quede
+  elegante». Los dos tonos pasan AA sobre `--bg`, `--bg-2` y `--panel-solido` en ambos temas
+  (`--tenue`: #5f6b7a en claro, #808c9d en oscuro). Si inventas un tono, calcula antes su
+  proporción de contraste sobre esos fondos.
 
 ### 2. Color y profundidad
 - Paleta «confianza y calma»: azul institucional (claro #1f4f8f, oscuro #82aee6) y turquesa
