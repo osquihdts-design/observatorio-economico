@@ -16,8 +16,8 @@ const DE_ISO3 = Object.fromEntries(Object.entries(ISO3).map(([a, b]) => [b, a]))
 
 // Escalas de color según cómo se lee cada indicador.
 const ESCALAS = {
-  cambio: ['#2563eb', '#60a5fa', '#94a3b8', '#fb923c', '#ea580c'],                       // baja (azul) · sube (naranja)
-  nivel: ['#312e81', '#6d28d9', '#a855f7', '#ec4899', '#f59e0b', '#fde047'],             // solo intensidad
+  cambio: ['#2c6aa8', '#8db0d6', '#c3c9d2', '#e2a970', '#bf6a2c'],                       // baja (azul) · sube (naranja)
+  nivel: ['#dce8f4', '#aac7e4', '#73a1d0', '#4479b5', '#245494', '#123462'],             // solo intensidad
 };
 
 // Ficha de cada indicador: unidad, qué mide, cómo leerlo, colores y línea de referencia.
@@ -343,7 +343,7 @@ export default {
         hovertemplate: `<b>%{customdata[0]}</b><br>%{z:,.${dec}f}${sufijo} <span style="opacity:.7">· ${ficha.unidad}</span>%{customdata[1]}<extra></extra>`,
         zmin, zmax, zauto: false,
         colorscale: escala.map((c, i) => [i / (escala.length - 1), c]),
-        marker: { line: { color: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#05080f', width: 0.8 } },
+        marker: { line: { color: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#0f1621', width: 0.8 } },
         colorbar: { thickness: 10, len: 0.7, x: 0.98, outlinewidth: 0, ticksuffix: sufijo, tickfont: { size: 11 },
           title: { text: ficha.unidad.replace(/ \(/, '<br>('), side: 'top', font: { size: 11 } } },
       };
@@ -542,7 +542,7 @@ export default {
       const nombres = {};
       const fuera = [];
       if (foco !== 'ES' && datos[foco]) {
-        trazas.push(linea(ctx.nombrePais(foco), datos[foco], getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00e5ff', { sufijo, line: { width: 2.8 } }));
+        trazas.push(linea(ctx.nombrePais(foco), datos[foco], getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#82aee6', { sufijo, line: { width: 2.8 } }));
         nombres[ctx.nombrePais(foco)] = datos[foco];
       }
       if (datos.ES) { trazas.push(linea('España', datos.ES, COLORES.ES, { sufijo, line: { width: foco === 'ES' ? 2.8 : 2.2 } })); nombres.España = datos.ES; }
@@ -550,7 +550,7 @@ export default {
       hist.el.querySelector('h2').textContent = foco === 'ES' ? 'Historia: España frente a la zona euro' : `Historia: ${ctx.nombrePais(foco)} frente a España`;
       const marca = fechas[indice];
       const base = layout();
-      const shapes = [{ type: 'line', xref: 'x', yref: 'paper', x0: marca, x1: marca, y0: 0, y1: 1, line: { color: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#a855f7', width: 1, dash: 'dot' } }];
+      const shapes = [{ type: 'line', xref: 'x', yref: 'paper', x0: marca, x1: marca, y0: 0, y1: 1, line: { color: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#6bb0a7', width: 1, dash: 'dot' } }];
       const annotations = [];
       if (ficha.referencia != null) {
         shapes.push({ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: ficha.referencia, y1: ficha.referencia, line: { color: '#94a3b8', width: 1.2, dash: 'dash' } });

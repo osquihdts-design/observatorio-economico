@@ -7,7 +7,7 @@
 [data-tema='oscuro'] {
   --bg: #0a1120; --panel-solido: #0d1424; --panel-2: rgba(255, 255, 255, 0.035);
   --line: rgba(148, 163, 184, 0.13); --line-2: rgba(148, 163, 184, 0.26);
-  --ink: #e8eef8; --muted: #8c99b0; --accent: #00e5ff;
+  --ink: #e3e8ef; --muted: #9ba7b7; --accent: #82aee6;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }

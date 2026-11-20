@@ -8,15 +8,15 @@ const oscuro = () => document.documentElement.dataset.tema !== 'claro';
 
 // Colores por país. Se rellenan según el tema (ver aplicarTema).
 const PAISES_CLARO = { ES: '#C8102E', EA: '#003399', UE: '#6D28D9', DE: '#2E3440', FR: '#4C78A8', IT: '#2A9D8F', PT: '#E9C46A' };
-const PAISES_OSCURO = { ES: '#ff3b5c', EA: '#5b8cff', UE: '#c084fc', DE: '#cbd5e1', FR: '#38bdf8', IT: '#2dd4bf', PT: '#fbbf24' };
+const PAISES_OSCURO = { ES: '#f06b7c', EA: '#7ea2f2', UE: '#b39ddb', DE: '#cfd6df', FR: '#6cb6e0', IT: '#5cc2b2', PT: '#e3bd62' };
 export const COLORES = { ...PAISES_OSCURO };
 export const PALETA = ['#003399', '#C8102E', '#2A9D8F', '#E9A23B', '#4C78A8', '#6C757D', '#8E44AD'];
 
 // En el tema oscuro, los colores pensados para fondo blanco se cambian por versiones luminosas.
 const EQUIVALENTES_OSCURO = {
-  '#C8102E': '#ff3b5c', '#003399': '#5b8cff', '#2E3440': '#cbd5e1', '#1f2937': '#cbd5e1', '#1b1f24': '#e8eef8',
-  '#4C78A8': '#38bdf8', '#2A9D8F': '#2dd4bf', '#E9A23B': '#fbbf24', '#E9C46A': '#fbbf24', '#6C757D': '#94a3b8',
-  '#9AA0A6': '#94a3b8', '#C5CBD3': '#334155', '#8E44AD': '#c084fc',
+  '#C8102E': '#f06b7c', '#003399': '#7ea2f2', '#2E3440': '#cfd6df', '#1f2937': '#cfd6df', '#1b1f24': '#e3e8ef',
+  '#4C78A8': '#6cb6e0', '#2A9D8F': '#5cc2b2', '#E9A23B': '#e3bd62', '#E9C46A': '#e3bd62', '#6C757D': '#9ba7b7',
+  '#9AA0A6': '#9ba7b7', '#C5CBD3': '#334155', '#8E44AD': '#b39ddb',
   'rgba(0,51,153,0.07)': 'rgba(91,140,255,0.10)', 'rgba(0,51,153,0.08)': 'rgba(91,140,255,0.12)',
   'rgba(0,51,153,0.65)': 'rgba(91,140,255,0.75)', 'rgba(0,51,153,0.7)': 'rgba(91,140,255,0.75)',
   'rgba(200,16,46,0.7)': 'rgba(255,59,92,0.8)', 'rgba(200,16,46,0.25)': 'rgba(255,59,92,0.3)',
@@ -119,7 +119,7 @@ function capaEventos(trazas) {
   let min = fechas[0], max = fechas[0];
   for (const f of fechas) { if (f < min) min = f; if (f > max) max = f; }
   const tenue = oscuro() ? 'rgba(148,163,184,0.10)' : 'rgba(100,116,139,0.10)';
-  const texto = oscuro() ? '#8c99b0' : '#5b6474';
+  const texto = oscuro() ? '#9ba7b7' : '#536070';
   const formas = [];
   for (const r of RECESIONES) {
     if (r.hasta < min || r.desde > max) continue;

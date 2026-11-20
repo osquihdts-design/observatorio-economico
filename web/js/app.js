@@ -87,7 +87,7 @@ let paginaActual = 'portada';
 // ---------------------------------------------------------------- Tema
 function ponerTema(tema, repintar = true) {
   document.documentElement.dataset.tema = tema;
-  document.querySelector('meta[name="theme-color"]').content = tema === 'claro' ? '#f3f5f9' : '#05080f';
+  document.querySelector('meta[name="theme-color"]').content = tema === 'claro' ? '#f4f6f9' : '#0f1621';
   $('#tema-claro').checked = tema === 'claro';
   aplicarTema();
   guardar('tema', tema);
@@ -459,7 +459,7 @@ async function pintar() {
 window.addEventListener('hashchange', pintar);
 
 (async function inicio() {
-  ponerTema(leer('tema', 'oscuro'), false);
+  ponerTema(leer('tema', matchMedia('(prefers-color-scheme: light)').matches ? 'claro' : 'oscuro'), false);
   iniciarFondo();
   iniciarTarjetas();
   $('#pagina').innerHTML = ESQUELETO;
