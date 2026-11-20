@@ -63,6 +63,9 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 
 14. ✅ Paleta «confianza y calma» (petición del usuario): azul institucional (claro #1f4f8f, oscuro #82aee6) + turquesa apagado; oscuro = azul noche #0f1621 (nunca negro puro ni neón). Tema por defecto = el del sistema (`prefers-color-scheme`). Fondo casi quieto (pocas partículas lentas, sin red que sigue al ratón, sin aurora animada), sin resplandores. Mapa: escala `nivel` en azules. Texto con contraste AA.
 
+15. ✅ Boletín de novedades (sin inicio de sesión, decisión del usuario): `src/novedades.py` (detecta periodos nuevos de ES/EA/UE frente a `api/resumen.json` de la web publicada; tipos `bce_*` solo si cambian; una entrada al día con guid = fecha) → `_site/novedades.xml` + `api/novedades.json` (historial, 30 entradas). Banner `web/js/boletin.js` (Buttondown, doble opt-in; `BOLETIN_USUARIO` vacío = solo RSS), botón en la barra lateral, comando en Ctrl+K y nota de privacidad RGPD en `sobre.js` (`#/sobre?ir=privacidad`; `?ir=` lleva a cualquier sección con id). Los tests pasan `leer=` a `publicar_web.generar` para no usar la red.
+
+## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
 - GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC y en cada push a main: datos como artifact + web en GitHub Pages). Acciones en v7 (Node 24); Pages: configure-pages@v6, upload-pages-artifact@v5, deploy-pages@v5.
 - Web pública: https://osquihdts-design.github.io/observatorio-economico/ — `scripts/publicar_web.py` genera `_site/` (web + JSON de catálogo, estado, resumen y series; `--ver` la sirve en :8600). `api.js` detecta `<meta name="observatorio-modo" content="estatico">`: sin POST (la curva de Phillips se calcula en JS), sin centro de investigación (es privado) ni botón de actualizar; el laboratorio muestra cómo usarlo en local.

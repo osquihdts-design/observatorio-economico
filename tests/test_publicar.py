@@ -15,9 +15,11 @@ class WebPublica(ConBaseTemporal):
     def test_generar(self):
         with tempfile.TemporaryDirectory() as carpeta:
             salida = Path(carpeta) / "_site"
-            r = publicar_web.generar(salida)
+            ayer = {"api/resumen.json": {"filas": []}, "api/novedades.json": None}
+            r = publicar_web.generar(salida, leer=ayer.get)
+            self.assertTrue((salida / "novedades.xml").read_text(encoding="utf-8").startswith("<?xml"))
             # Datos como JSON
-            for nombre in ("catalogo", "estado", "resumen", "previsiones", "calendario"):
+            for nombre in ("catalogo", "estado", "resumen", "previsiones", "calendario", "verificacion", "novedades"):
                 self.assertTrue((salida / "api" / f"{nombre}.json").exists(), nombre)
             serie = json.loads((salida / "api" / "series" / "paro.json").read_text(encoding="utf-8"))
             self.assertEqual(set(serie), {"ES", "EA"})

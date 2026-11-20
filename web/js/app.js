@@ -1,9 +1,10 @@
 // Estructura general: barra lateral, ticker, reloj, tema, paleta de comandos, atajos y navegación con transiciones.
-import { ESTATICO, REPOSITORIO, get, post } from './api.js';
+import { ESTATICO, REPOSITORIO, WEB_PUBLICA, get, post } from './api.js';
 import { aplicarTema, cerrarVisor, COLORES, fmt, ponerEventos } from './graficos.js';
 import { avisar, contar, iniciarFondo, iniciarTarjetas, revelar, transicion } from './efectos.js';
 import { iniciarAtajos, iniciarPaleta } from './paleta.js';
 import { aviso } from './ui.js';
+import { iniciarBoletin, mostrarBoletin } from './boletin.js';
 import portada from './paginas/portada.js';
 import mapa from './paginas/mapa.js';
 import inflacion from './paginas/inflacion.js';
@@ -286,6 +287,7 @@ function comandos() {
   for (const [r, n] of [['1', '1 año'], ['3', '3 años'], ['5', '5 años'], ['10', '10 años'], ['max', 'desde 2000']]) {
     add({ tipo: 'periodo', icono: '⏱', titulo: `Periodo: ${n}`, claves: 'periodo rango fechas', accion: () => ponerRango(r) });
   }
+  add({ tipo: 'acción', icono: '✉', titulo: 'Recibir novedades por correo', detalle: 'Como mucho un correo al día', claves: 'boletin correo email gmail notificaciones suscribirse rss', accion: () => mostrarBoletin(true) });
   add({ tipo: 'acción', icono: '◐', titulo: 'Cambiar tema claro / oscuro', detalle: 'Tecla T', claves: 'tema oscuro claro modo', accion: alternarTema });
   add({ tipo: 'acción', icono: '🎓', titulo: 'Modo explicación académica', detalle: 'Tecla A', claves: 'academico explicacion formulas', accion: () => ponerAcademico(!academico.checked) });
   if (!ESTATICO) add({ tipo: 'acción', icono: '⟳', titulo: 'Actualizar los datos ahora', detalle: 'Tecla U', claves: 'actualizar descargar datos', accion: actualizar });
@@ -327,7 +329,6 @@ const ESQUELETO = '<div class="carga"><div class="esqueleto e1"></div><div class
 // #/pagina/parametro?p=DE,FR&r=10   (o d=2015-01&h=2020-12 para fechas a medida)
 // más los parámetros propios de cada página (el mapa usa f, c, v y f2).
 const GLOBALES = ['p', 'r', 'd', 'h'];
-const WEB_PUBLICA = 'https://osquihdts-design.github.io/observatorio-economico/';
 const SOLO_EN_LOCAL = ['investigacion', 'biblioteca', 'fichas', 'laboratorio'];
 let consultaPagina = {};
 
@@ -454,6 +455,9 @@ async function pintar() {
   revelar(contenedor.querySelectorAll('.cabecera, .heroe, .kpi, .card'));
   contar(contenedor);
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  // ?ir=seccion lleva a una sección concreta de la página (por ejemplo, #/sobre?ir=privacidad).
+  const ir = leerHash().q.get('ir');
+  if (ir) document.getElementById(ir)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 window.addEventListener('hashchange', pintar);
@@ -475,6 +479,7 @@ window.addEventListener('hashchange', pintar);
   await cargarTicker().catch(() => {});
   if (!ESTATICO) cargarTaxonomia().catch(() => {}); // para que la paleta encuentre recursos y fichas
   pintar();
+  iniciarBoletin();
   if (!leer('bienvenida', false)) {
     setTimeout(() => avisar('Consejo: pulsa Ctrl+K para buscar cualquier cosa, o ? para ver los atajos', 'info', 7000), 1500);
     guardar('bienvenida', true);

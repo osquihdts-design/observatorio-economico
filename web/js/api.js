@@ -5,6 +5,7 @@
 
 export const ESTATICO = document.querySelector('meta[name="observatorio-modo"]')?.content === 'estatico';
 export const REPOSITORIO = 'https://github.com/osquihdts-design/observatorio-economico';
+export const WEB_PUBLICA = 'https://osquihdts-design.github.io/observatorio-economico/';
 
 async function respuesta(r) {
   const j = await r.json().catch(() => ({}));

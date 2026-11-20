@@ -25,9 +25,36 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 
 import servidor  # noqa: E402  (reutiliza las mismas funciones que la API)
+from src import novedades  # noqa: E402
 from src.etl import storage  # noqa: E402
 
 SALIDA = RAIZ / "_site"
+WEB_PUBLICA = "https://osquihdts-design.github.io/observatorio-economico/"
+
+
+def leer_publicado(ruta: str):
+    """JSON de la web ya publicada (la de ayer) o None si no se puede leer."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(WEB_PUBLICA + ruta + f"?t={datetime.now().timestamp():.0f}", timeout=20) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except Exception as e:  # sin conexión o primera publicación: no hay con qué comparar
+        print(f"  Aviso: no se pudo leer {ruta} de la web publicada ({e}).")
+        return None
+
+
+def escribir_novedades(salida: Path, resumen: dict, leer=leer_publicado) -> int:
+    """Compara con la web publicada y añade, como mucho, una entrada al día en novedades.xml."""
+    anterior = leer("api/resumen.json")
+    historial = (leer("api/novedades.json") or {}).get("entradas", [])
+    hoy = datetime.now(timezone.utc).date()
+    nuevas = novedades.detectar(resumen["filas"], anterior and anterior.get("filas"))
+    nuevas = novedades.sumar_del_dia(historial, nuevas, hoy)
+    proximas = servidor.api_calendario({})["eventos"]
+    historial = novedades.combinar(historial, novedades.entrada(nuevas, proximas, hoy, WEB_PUBLICA))
+    print(f"  Novedades: {len(nuevas)} datos nuevos hoy; {len(historial)} entradas en el historial.")
+    (salida / "novedades.xml").write_text(novedades.rss(historial, WEB_PUBLICA), encoding="utf-8")
+    return escribir(salida / "api" / "novedades.json", {"entradas": historial})
 META = '<meta name="observatorio-modo" content="estatico" />'
 
 
@@ -58,7 +85,8 @@ def versionar(carpeta: Path) -> str:
     return huella
 
 
-def generar(salida: Path = SALIDA) -> dict:
+def generar(salida: Path = SALIDA, leer=leer_publicado) -> dict:
+    """`leer` trae los JSON de la web ya publicada (los tests pasan uno falso para no usar la red)."""
     if not storage.disponibles():
         raise SystemExit("La base de datos está vacía: ejecuta antes python scripts/actualizar_datos.py")
     if salida.exists():
@@ -77,7 +105,9 @@ def generar(salida: Path = SALIDA) -> dict:
     api = salida / "api"
     peso = escribir(api / "catalogo.json", servidor.api_catalogo({}))
     peso += escribir(api / "estado.json", servidor.api_estado({}))
-    peso += escribir(api / "resumen.json", servidor.api_resumen({}))
+    resumen = servidor.api_resumen({})
+    peso += escribir(api / "resumen.json", resumen)
+    peso += escribir_novedades(salida, resumen, leer)
     peso += escribir(api / "previsiones.json", servidor.api_previsiones({}))
     # El calendario se guarda entero desde hoy; la web descarta lo que ya haya pasado.
     peso += escribir(api / "verificacion.json", servidor.api_verificacion({}))

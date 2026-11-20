@@ -307,6 +307,8 @@ Los datos no se guardan en el repositorio (`data/processed/` está en `.gitignor
 
 ## Decisiones técnicas y limitaciones
 
+- **Boletín de novedades:** al generar la web, `scripts/publicar_web.py` compara el último dato de cada indicador (España, zona euro y UE) con la web ya publicada y escribe `novedades.xml` (RSS, una entrada al día como mucho, solo si hay datos nuevos). Un servicio de boletines (Buttondown, con RSS a correo) lo envía a los suscriptores; la web no guarda correos. El nombre de usuario del boletín se pone en `web/js/boletin.js` (`BOLETIN_USUARIO`).
+
 - **Enfoque descriptivo:** los gráficos y textos no califican los datos. Los colores solo indican «más alto / más bajo» (o «por encima / por debajo» de un objetivo oficial, como el 2 % del BCE), nunca «bueno / malo». Todos los ejes llevan título con su unidad (%, €, puntos básicos, índice 2015 = 100).
 - **Verificación diaria:** después de descargar, `scripts/verificar_datos.py` compara el último valor de cada indicador con la fuente oficial; el resultado se ve en la página «Sobre el proyecto».
 
