@@ -1,6 +1,6 @@
 // Módulo 3: política monetaria y condiciones financieras.
 import { series } from '../api.js';
-import { aTabla, dibujar, linea, tarjeta } from '../graficos.js';
+import { aTabla, dibujar, linea, tarjeta, eje } from '../graficos.js';
 
 export default {
   titulo: 'Política monetaria',
@@ -21,7 +21,7 @@ export default {
       linea('Facilidad marginal de crédito', mlf, '#6C757D', { sufijo: ' %', ...escalon, extra: { fill: 'tonexty', fillcolor: 'rgba(0,51,153,0.07)' } }),
       linea('Operaciones principales', mro, '#003399', { sufijo: ' %', line: { shape: 'hv', width: 1.8, dash: 'dot' } }),
       linea('Euríbor 12 meses', eur, '#C8102E', { sufijo: ' %', line: { width: 2.6 } }),
-    ], { yaxis: { ticksuffix: ' %' } });
+    ], { yaxis: eje('Tipo de interés (% anual)', ' %') });
     t1.setDatos(aTabla({ 'Depósito (%)': dep, 'Refinanciación (%)': mro, 'Marginal (%)': mlf, 'Euríbor 12m (%)': eur }));
 
     // 2. Transmisión a hipotecas
@@ -32,7 +32,7 @@ export default {
       linea('Euríbor 12 meses', eur, '#6C757D', { sufijo: ' %', line: { dash: 'dot' } }),
       linea('Hipotecas nuevas · España', hes, '#C8102E', { sufijo: ' %', line: { width: 2.6 } }),
       linea('Hipotecas nuevas · zona euro', hea, '#003399', { sufijo: ' %', line: { width: 2.6 } }),
-    ], { yaxis: { ticksuffix: ' %' } });
+    ], { yaxis: eje('Tipo de interés (% anual)', ' %') });
     t2.setDatos(aTabla({ 'Euríbor 12m (%)': eur, 'Hipotecas España (%)': hes, 'Hipotecas zona euro (%)': hea }));
 
     // 3. M3
@@ -40,7 +40,7 @@ export default {
     nodo.appendChild(t3.el);
     const m3 = d.m3_var?.EA || [];
     dibujar(t3.grafico, [{ ...linea('M3', m3, '#003399', { sufijo: ' %' }), fill: 'tozeroy', fillcolor: 'rgba(0,51,153,0.08)' }],
-      { yaxis: { ticksuffix: ' %' }, showlegend: false });
+      { yaxis: eje('Variación anual (%)', ' %'), showlegend: false });
     t3.setDatos(aTabla({ 'M3 (% anual)': m3 }));
   },
 };

@@ -58,6 +58,9 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 11. ✅ Jóvenes, empleo y tecnología (`paginas/jovenes.js`, para el TFG de Sociología del usuario): 10 indicadores anuales de Eurostat (edat_lfse_20, lfsi_emp_a, edat_lfse_14, edat_lfse_03, isoc_sk_dskl_i21, isoc_sks_itspt, isoc_eb_ai, isoc_ai_iaiu ×3). Frecuencia `A` en el conector y agregado `EU27_2020` guardado como `UE` en todas las tablas (el mapa muestra la cifra oficial de la UE si existe; si no, la media simple). `yth_empl_050` y `lfsa_etpga` daban 404 en nov. 2026. 77 tests.
 12. ✅ Salarios por edad (INE EPA, tabla 66239: series EPA706586 16-24, EPA706597 25-34, EPA706575 total; anuales desde 2006) y paro juvenil por nivel de estudios (Eurostat `lfsq_urgaed`, 15-24, ED0-2 / ED3_4 / ED5-8, trimestral sin desestacionalizar). En la página de jóvenes. 42 indicadores.
 
+13. ✅ Verificación y objetividad: `scripts/verificar_datos.py` (consulta independiente del último dato en INE/Eurostat/BCE; 66/66 coinciden el 20-11-2026) → `verificacion.json`, API `verificacion`, paso del workflow y tarjeta en `sobre.js`. `graficos.eje(titulo, sufijo)`: todos los ejes con título y unidad.
+    - Enfoque descriptivo (decisión del usuario): nada de «mejor/peor» ni verde = bueno / rojo = malo. Escalas del mapa `nivel` y `cambio` (centrada en el objetivo); radar = percentil del valor bruto; deltas y ticker en colores neutros. No reintroducir juicios de valor.
+
 ## Publicación
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
 - GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC y en cada push a main: datos como artifact + web en GitHub Pages). Acciones en v7 (Node 24); Pages: configure-pages@v6, upload-pages-artifact@v5, deploy-pages@v5.

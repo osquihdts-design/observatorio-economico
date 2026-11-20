@@ -80,6 +80,7 @@ def generar(salida: Path = SALIDA) -> dict:
     peso += escribir(api / "resumen.json", servidor.api_resumen({}))
     peso += escribir(api / "previsiones.json", servidor.api_previsiones({}))
     # El calendario se guarda entero desde hoy; la web descarta lo que ya haya pasado.
+    peso += escribir(api / "verificacion.json", servidor.api_verificacion({}))
     peso += escribir(api / "calendario.json", servidor.api_calendario({}))
     indicadores = list(storage.disponibles())
     for ind in indicadores:

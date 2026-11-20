@@ -1,6 +1,6 @@
 // Módulo 1: inflación y poder adquisitivo.
 import { series } from '../api.js';
-import { aTabla, COLORES, dibujar, fechaTexto, fmt, linea, referencia, tarjeta } from '../graficos.js';
+import { aTabla, COLORES, dibujar, fechaTexto, fmt, linea, referencia, tarjeta, eje } from '../graficos.js';
 import { explicacion } from '../academico.js';
 import { NOTA_PREVISIONES, trazasPrevision } from '../previsiones.js';
 
@@ -23,7 +23,7 @@ export default {
     dibujar(t1.grafico, [
       linea('IPC general', general, '#C8102E', { sufijo: ' %' }),
       linea('IPC subyacente', subyacente, '#003399', { sufijo: ' %', line: { dash: 'dash' } }),
-    ], { ...referencia(2, 'Objetivo BCE: 2 %'), yaxis: { ticksuffix: ' %' } });
+    ], { ...referencia(2, 'Objetivo BCE: 2 %'), yaxis: eje('Variación anual (%)', ' %') });
     t1.setDatos(aTabla({ 'IPC general (%)': general, 'IPC subyacente (%)': subyacente }));
 
     // 2. Comparativa europea
@@ -40,7 +40,7 @@ export default {
       const previstas = await trazasPrevision(id, orden);
       t2.el.querySelector('.sub').textContent = `IAPC, variación anual en %.${previstas.length ? ` ${NOTA_PREVISIONES}` : ''}`;
       dibujar(t2.grafico, [...orden.map((p) => linea(ctx.nombrePais(p), datos[p], COLORES[p], { sufijo: ' %', line: { width: p === 'ES' || p === 'EA' ? 2.8 : 1.8 } })), ...previstas],
-        { ...referencia(2, 'Objetivo BCE: 2 %'), yaxis: { ticksuffix: ' %' } });
+        { ...referencia(2, 'Objetivo BCE: 2 %'), yaxis: eje('Variación anual (%)', ' %') });
       t2.setDatos(aTabla(Object.fromEntries(orden.map((p) => [`${ctx.nombrePais(p)} (%)`, datos[p]]))));
     };
     selector.addEventListener('change', pintarEuropa);

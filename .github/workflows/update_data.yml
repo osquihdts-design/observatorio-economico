@@ -36,6 +36,10 @@ jobs:
         id: datos
         continue-on-error: true
         run: python scripts/actualizar_datos.py
+      - name: Verificar los datos con las fuentes oficiales
+        # Pide a cada organismo su último dato por una consulta independiente y lo compara con el panel.
+        continue-on-error: true
+        run: python scripts/verificar_datos.py
       - name: Ejemplo de laboratorio (comprueba el motor econométrico con datos reales)
         continue-on-error: true
         run: python scripts/ejemplo_laboratorio.py
