@@ -15,7 +15,7 @@
   --line-2: rgba(148, 163, 184, 0.26);
   --ink: #e3e8ef;
   --muted: #9ba7b7;
-  --tenue: #6f7c8d;
+  --tenue: #808c9d;
   --accent: #82aee6;
   --accent-2: #6bb0a7;
   --accent-3: #93b99f;
@@ -45,7 +45,7 @@
   --line-2: rgba(16, 37, 66, 0.20);
   --ink: #1a2433;
   --muted: #536070;
-  --tenue: #7f8a99;
+  --tenue: #5f6b7a;
   --accent: #1f4f8f;
   --accent-2: #2b7a78;
   --accent-3: #4f7f5f;
@@ -239,7 +239,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
 @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .tick { display: inline-flex; align-items: baseline; gap: 7px; font-size: 12.5px; color: var(--muted); text-decoration: none; }
 .tick b { font: 700 13px var(--mono); color: var(--ink); }
-.tick .sube { color: var(--bad); } .tick .baja { color: var(--good); } .tick .igual { color: var(--neutral); }
+.tick .igual { color: var(--neutral); }
 .tick .neutro-sube, .tick .neutro-baja { color: var(--accent); }
 .tick:hover b { color: var(--accent); }
 .reloj { font: 600 12px var(--mono); color: var(--muted); white-space: nowrap; }
@@ -329,7 +329,7 @@ details.academico .formula { font-family: 'Cambria Math', 'Times New Roman', ser
 .chip-heroe.destacado { color: var(--accent-ink); background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; font-weight: 700; }
 .chip-heroe.destacado:hover { color: var(--accent-ink); transform: translateX(3px); }
 a.kpi { color: inherit; text-decoration: none; display: block; }
-.sube-t { color: var(--bad); font-family: var(--mono); } .baja-t { color: var(--good); font-family: var(--mono); }
+.sube-t, .baja-t { color: var(--ink); font-family: var(--mono); }
 
 /* Tarjetas KPI con inclinación 3D */
 .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; perspective: 900px; }
@@ -343,8 +343,6 @@ a.kpi { color: inherit; text-decoration: none; display: block; }
 .kpi .valor small { font-size: 15px; color: var(--muted); font-weight: 500; margin-left: 2px; }
 .kpi .linea { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--muted); gap: 6px; flex-wrap: wrap; transform: translateZ(25px); }
 .delta { font: 700 11.5px var(--mono); border-radius: 6px; padding: 2px 7px; }
-.delta.bueno { color: var(--good); background: var(--good-soft); }
-.delta.malo { color: var(--bad); background: var(--bad-soft); }
 .delta.neutro { color: var(--neutral); background: var(--panel-2); }
 .kpi .ref { font-size: 11.5px; color: var(--muted); margin-top: 5px; }
 .kpi svg { display: block; width: 100%; height: 38px; margin-top: 8px; overflow: visible; }
