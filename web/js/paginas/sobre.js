@@ -1,9 +1,10 @@
 // Sobre el proyecto: quién lo hace, de dónde salen los datos, cómo se elaboran, licencias, cómo citar y registro de cambios.
-import { get, REPOSITORIO } from '../api.js';
+import { get, REPOSITORIO, WEB_PUBLICA } from '../api.js';
 import { fmt } from '../graficos.js';
+import { RSS } from '../boletin.js';
 import { copiar, markdown } from '../investigacion.js';
 
-export const WEB_PUBLICA = 'https://osquihdts-design.github.io/observatorio-economico/';
+export { WEB_PUBLICA };
 const ANIO = new Date().getFullYear();
 export const CITA_WEB = `Observatorio económico. (${ANIO}). Observatorio económico: España frente a Europa [Aplicación web]. ${WEB_PUBLICA}`;
 
@@ -17,6 +18,7 @@ const FUENTES = [
 ];
 
 const CAMBIOS = [
+  ['2026-11-20', 'Boletín de novedades: resumen diario de los datos oficiales nuevos (RSS y, próximamente, por correo), como mucho uno al día.'],
   ['2026-11-20', 'Nueva paleta de colores más sobria (azul institucional, sin neón), fondo tranquilo y tema claro u oscuro según el sistema.'],
   ['2026-11-20', 'Comprobación diaria de los datos con las fuentes oficiales, ejes con su unidad en todos los gráficos y enfoque descriptivo: colores y textos sin juicios de valor.'],
   ['2026-11-20', 'Salario medio bruto de los jóvenes por edad (INE) y paro juvenil según el nivel de estudios (Eurostat).'],
@@ -62,7 +64,7 @@ export default {
 
       <section class="card texto-largo">
         <h2>Quién lo hace</h2>
-        <p>Es el proyecto personal de un estudiante de Economía. No tiene publicidad ni recoge datos personales, y el código es abierto:
+        <p>Es el proyecto personal de un estudiante de Economía. No tiene publicidad ni recoge datos personales (salvo el correo de quien se suscribe al boletín, que gestiona un servicio externo), y el código es abierto:
         cualquiera puede revisar cómo se descarga y calcula cada cifra en <a href="${REPOSITORIO}" target="_blank" rel="noopener">GitHub</a>.</p>
         <p>¿Has visto un error o echas en falta un indicador? Escríbelo en las
         <a href="${REPOSITORIO}/issues" target="_blank" rel="noopener">sugerencias del proyecto (GitHub)</a>.</p>
@@ -81,6 +83,20 @@ export default {
       <section class="card texto-largo md">${markdown(METODO)}</section>
 
       <section class="card" id="verificacion"></section>
+
+      <section class="card texto-largo" id="privacidad">
+        <h2>Boletín de novedades y privacidad</h2>
+        <p>Quien quiera puede recibir por correo un resumen con los datos oficiales nuevos: <strong>como mucho uno al día</strong>, y solo los días
+        en que el INE, Eurostat o el BCE publican algo. El resumen se limita a describir los datos (valor, periodo y valor anterior), sin valorarlos.
+        También se puede seguir sin dar ningún dato con el <a href="${RSS}" target="_blank" rel="noopener">canal RSS</a>.</p>
+        <ul>
+          <li><strong>Qué se guarda:</strong> solo tu dirección de correo, y solo si te suscribes y lo confirmas desde el enlace que recibes (doble confirmación).</li>
+          <li><strong>Para qué:</strong> únicamente para enviarte el resumen. No se usa para publicidad ni se cede a nadie.</li>
+          <li><strong>Dónde:</strong> la lista la gestiona el servicio de boletines Buttondown; esta web no guarda correos ni usa cookies de seguimiento.</li>
+          <li><strong>Baja:</strong> cada correo tiene un enlace para darte de baja con un clic, y se borra tu dirección.</li>
+          <li><strong>Base legal:</strong> tu consentimiento (artículo 6.1.a del RGPD), que puedes retirar en cualquier momento.</li>
+        </ul>
+      </section>
 
       <section class="card texto-largo">
         <h2>Cómo citarlo</h2>
