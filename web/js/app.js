@@ -216,25 +216,24 @@ function ponerAcademico(activo) {
 academico.addEventListener('change', () => ponerAcademico(academico.checked));
 
 // ---------------------------------------------------------------- Ticker y reloj
-// sentido: -1 = subir es malo (rojo), 1 = subir es bueno (verde), 0 = neutro
+// Las variaciones se muestran con flechas en colores neutros: el panel describe, no valora.
 const TICKER = [
-  ['ipc_general', 'ES', 'IPC', 0], ['ipc_subyacente', 'ES', 'IPC subyacente', 0], ['paro', 'ES', 'Paro', -1],
-  ['paro_jovenes', 'ES', 'Paro juvenil', -1], ['pib_var', 'ES', 'PIB', 1], ['euribor_12m', 'EA', 'Euríbor', 0],
-  ['bce_deposito', 'EA', 'Tipo BCE', 0], ['tipo_hipotecas', 'ES', 'Hipotecas', 0], ['ipv_general_var', 'ES', 'Vivienda', 0],
-  ['bono_10a', 'ES', 'Bono 10a', 0], ['deuda_publica', 'ES', 'Deuda/PIB', -1], ['saldo_publico', 'ES', 'Saldo público', 1],
-  ['iapc_general', 'EA', 'IAPC zona euro', 0], ['paro', 'EA', 'Paro zona euro', -1], ['m3_var', 'EA', 'M3', 0],
+  ['ipc_general', 'ES', 'IPC'], ['ipc_subyacente', 'ES', 'IPC subyacente'], ['paro', 'ES', 'Paro'],
+  ['paro_jovenes', 'ES', 'Paro juvenil'], ['pib_var', 'ES', 'PIB'], ['euribor_12m', 'EA', 'Euríbor'],
+  ['bce_deposito', 'EA', 'Tipo BCE'], ['tipo_hipotecas', 'ES', 'Hipotecas'], ['ipv_general_var', 'ES', 'Vivienda'],
+  ['bono_10a', 'ES', 'Bono 10a'], ['deuda_publica', 'ES', 'Deuda/PIB'], ['saldo_publico', 'ES', 'Saldo público'],
+  ['iapc_general', 'EA', 'IAPC zona euro'], ['paro', 'EA', 'Paro zona euro'], ['m3_var', 'EA', 'M3'],
 ];
 
 async function cargarTicker() {
   resumen = (await get('resumen')).filas;
   const indice = new Map(resumen.map((f) => [`${f.indicador}|${f.pais}`, f]));
-  const items = TICKER.map(([id, pais, nombre, sentido]) => {
+  const items = TICKER.map(([id, pais, nombre]) => {
     const f = indice.get(`${id}|${pais}`);
     if (!f) return '';
     const d = f.anterior == null ? 0 : f.valor - f.anterior;
     const flecha = Math.abs(d) < 0.005 ? '■' : d > 0 ? '▲' : '▼';
-    const clase = Math.abs(d) < 0.005 ? 'igual' : sentido === 0 ? (d > 0 ? 'neutro-sube' : 'neutro-baja')
-      : (d > 0) === (sentido > 0) ? 'baja' : 'sube';
+    const clase = Math.abs(d) < 0.005 ? 'igual' : d > 0 ? 'neutro-sube' : 'neutro-baja';
     return `<a class="tick" href="#/${PAGINA_DE(id)}">${nombre}${pais === 'EA' && !nombre.includes('zona') ? ' (UEM)' : ''}
       <b>${fmt(f.valor, f.unidad === '%' && /euribor|bce|bono|hipotecas/.test(id) ? 2 : 1)}${f.unidad.startsWith('%') ? '%' : ''}</b>
       <span class="${clase}">${flecha} ${fmt(Math.abs(d), 2)}</span></a>`;

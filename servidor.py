@@ -195,6 +195,14 @@ def api_estado(_q):
     return {"fuentes": storage.estado_fuentes(), "actualizacion": ACTUALIZACION.estado, "vacia": vacia}
 
 
+def api_verificacion(_q):
+    """Resultado de la última comprobación con las fuentes oficiales (scripts/verificar_datos.py)."""
+    ruta = config.CARPETA_DATOS / "verificacion.json"
+    if not ruta.exists():
+        return {}
+    return json.loads(ruta.read_text(encoding="utf-8"))
+
+
 def api_resumen(_q):
     filas = storage.ultimos_valores(2)
     resumen: dict[tuple, dict] = {}
@@ -331,7 +339,7 @@ INV_POST = {
 
 
 RUTAS_GET = {"catalogo": api_catalogo, "series": api_series, "estado": api_estado, "resumen": api_resumen,
-             "previsiones": api_previsiones, "calendario": api_calendario,
+             "previsiones": api_previsiones, "calendario": api_calendario, "verificacion": api_verificacion,
              **{k: _con_almacen(f) for k, f in INV_GET.items()}}
 RUTAS_POST = {"lab/hp": api_hp, "lab/ccf": api_ccf, "lab/ols": api_ols, "lab/dispersion": api_dispersion,
               **{k: _con_almacen(f) for k, f in INV_POST.items()}}

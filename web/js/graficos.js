@@ -161,6 +161,12 @@ export function dibujar(div, trazas, extra = {}) {
   return promesa;
 }
 
+/** Eje vertical con su magnitud escrita: título (qué se mide y en qué unidad) y unidad en cada número.
+ *  Ejemplo: eje('Variación anual (%)', ' %') · eje('Euros al mes', ' €') · eje('Índice (2015 = 100)') */
+export function eje(titulo, sufijo = '', extra = {}) {
+  return { title: { text: titulo, font: { size: 12 } }, ticksuffix: sufijo, ...extra };
+}
+
 /** Traza de línea a partir de [[fecha, valor], …] */
 export function linea(nombre, puntos, color, opciones = {}) {
   return {

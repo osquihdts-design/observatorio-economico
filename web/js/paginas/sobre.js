@@ -1,5 +1,6 @@
 // Sobre el proyecto: quién lo hace, de dónde salen los datos, cómo se elaboran, licencias, cómo citar y registro de cambios.
-import { REPOSITORIO } from '../api.js';
+import { get, REPOSITORIO } from '../api.js';
+import { fmt } from '../graficos.js';
 import { copiar, markdown } from '../investigacion.js';
 
 export const WEB_PUBLICA = 'https://osquihdts-design.github.io/observatorio-economico/';
@@ -16,6 +17,7 @@ const FUENTES = [
 ];
 
 const CAMBIOS = [
+  ['2026-11-20', 'Comprobación diaria de los datos con las fuentes oficiales, ejes con su unidad en todos los gráficos y enfoque descriptivo: colores y textos sin juicios de valor.'],
   ['2026-11-20', 'Salario medio bruto de los jóvenes por edad (INE) y paro juvenil según el nivel de estudios (Eurostat).'],
   ['2026-11-19', 'Página «Jóvenes, empleo y tecnología»: ninis, empleo juvenil, formación, competencias digitales e inteligencia artificial (Eurostat), con la UE-27 como referencia.'],
   ['2026-11-19', 'Guías para trabajos, informe en PDF, gráficos para insertar y página «Sobre el proyecto»; licencia CC BY 4.0.'],
@@ -33,6 +35,7 @@ const CAMBIOS = [
 const METODO = `
 ### Cómo se elaboran los datos
 
+- **Enfoque descriptivo:** el panel muestra los datos sin calificarlos. Los colores indican si un valor es más alto o más bajo, nunca si es «bueno» o «malo», y las únicas líneas de referencia son objetivos oficiales (el 2 % del BCE, los límites fiscales de la UE o las metas europeas para 2030).
 - **Sin retoques:** los valores son los publicados por cada organismo. El panel solo los reorganiza en un formato común (fecha, indicador, país, valor, unidad, fuente y código de la serie).
 - **Inflación de Eurostat:** en 2026 Eurostat pasó a la nueva clasificación de consumo ECOICOP 2. Para tener una serie continua se unen la tabla antigua (\`prc_hicp_manr\`, hasta diciembre de 2025) y la nueva (\`prc_hicp_minr\`, desde enero de 2026).
 - **Tipos del BCE y euríbor:** el BCE publica datos diarios. El panel toma el **último valor de cada mes** (elaboración propia).
@@ -48,7 +51,7 @@ Todos los días a las **07:30 UTC** (08:30 en invierno y 09:30 en verano, hora p
 
 export default {
   titulo: 'Sobre el proyecto',
-  render(nodo) {
+  async render(nodo) {
     nodo.className = 'rejilla';
     nodo.innerHTML = `
       <header class="cabecera"><span class="etiqueta">Transparencia · fuentes · licencia</span>
@@ -76,6 +79,8 @@ export default {
 
       <section class="card texto-largo md">${markdown(METODO)}</section>
 
+      <section class="card" id="verificacion"></section>
+
       <section class="card texto-largo">
         <h2>Cómo citarlo</h2>
         <p>Para citar la web en un trabajo (APA 7.ª):</p>
@@ -101,5 +106,26 @@ export default {
         <p class="fuente-nota">El historial completo, cambio a cambio, está en <a href="${REPOSITORIO}/commits/main" target="_blank" rel="noopener">GitHub</a>.</p>
       </section>`;
     nodo.querySelector('[data-copiar-web]').addEventListener('click', () => copiar(CITA_WEB, 'Cita de la web'));
+    const caja = nodo.querySelector('#verificacion');
+    const v = await get('verificacion').catch(() => ({}));
+    if (!v.resultados?.length) {
+      caja.innerHTML = '<h2>Comprobación con las fuentes oficiales</h2><p class="sub">Todavía no hay ninguna comprobación guardada.</p>';
+    } else {
+      const r = v.resumen, total = v.resultados.length;
+      const fecha = new Date(v.fecha).toLocaleString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const ESTADOS = { coincide: 'Coincide', dato_nuevo: 'Hay un dato más reciente', no_coincide: 'No coincide', sin_dato_oficial: 'Sin dato oficial', error_fuente: 'Fuente no disponible' };
+      const num = (x, u) => (x == null ? '—' : `${fmt(x, u === '€' ? 0 : 2)}${u === '€' ? ' €' : u?.startsWith('%') ? ' %' : ''}`);
+      caja.innerHTML = `<h2>Comprobación con las fuentes oficiales</h2>
+        <p class="sub">Cada día, después de descargar los datos, un programa independiente (<code>scripts/verificar_datos.py</code>) pide a cada organismo
+        su último dato con una consulta propia y lo compara con el que muestra el panel.</p>
+        <p style="font-size:1.05rem"><strong>${r.coincide} de ${total}</strong> datos coinciden con la fuente oficial${r.dato_nuevo ? ` · ${r.dato_nuevo} con un dato más reciente pendiente de descargar` : ''}${r.no_coincide ? ` · <strong>${r.no_coincide} no coinciden</strong>` : ''}${r.error_fuente ? ` · ${r.error_fuente} sin respuesta de la fuente` : ''}.
+        <span class="fuente-nota">Última comprobación: ${fecha}.</span></p>
+        <details><summary>Ver el detalle dato a dato</summary>
+        <div class="tabla-wrap"><table>
+          <thead><tr><th>Indicador</th><th>País</th><th>Fuente</th><th>Periodo</th><th>Panel</th><th>Fuente oficial</th><th>Resultado</th></tr></thead>
+          <tbody>${v.resultados.map((x) => `<tr><td>${x.nombre}</td><td>${x.pais}</td><td>${x.fuente}</td><td>${x.periodo_oficial || x.periodo_panel || '—'}</td>
+            <td>${num(x.valor_panel, x.unidad)}</td><td>${num(x.valor_oficial, x.unidad)}</td><td>${ESTADOS[x.estado] || x.estado}</td></tr>`).join('')}</tbody>
+        </table></div></details>`;
+    }
   },
 };

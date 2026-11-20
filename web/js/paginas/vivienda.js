@@ -1,6 +1,6 @@
 // Módulo 4: vivienda y salarios.
 import { series } from '../api.js';
-import { aTabla, COLORES, dibujar, linea, referencia, tarjeta } from '../graficos.js';
+import { aTabla, COLORES, dibujar, linea, referencia, tarjeta, eje } from '../graficos.js';
 
 /** Reescala una serie para que la media de 2015 valga 100. */
 function base2015(puntos) {
@@ -41,7 +41,7 @@ export default {
       linea('Vivienda nueva (INE)', series1['Vivienda nueva (INE)'], '#E9A23B'),
       linea('Segunda mano (INE)', series1['Segunda mano (INE)'], '#2A9D8F'),
       linea('Eurostat (índice armonizado)', series1['Eurostat HPI'], '#003399', { line: { dash: 'dot' } }),
-    ], referencia(100, 'Media de 2015'));
+    ], { ...referencia(100, 'Media de 2015'), yaxis: eje('Índice (2015 = 100)') });
     t1.setDatos(aTabla(series1));
 
     // 2. Índice de esfuerzo
@@ -55,7 +55,7 @@ export default {
       linea('Precio de la vivienda', s2['Precio vivienda (2015=100)'], '#C8102E', { line: { width: 1.6, dash: 'dot' } }),
       linea('Salario', s2['Salario (2015=100, media 4 trim.)'], '#2A9D8F', { line: { width: 1.6, dash: 'dot' } }),
       linea('Índice de esfuerzo', s2['Índice de esfuerzo'], '#003399', { line: { width: 3 } }),
-    ], referencia(100, '2015 = 100'));
+    ], { ...referencia(100, '2015 = 100'), yaxis: eje('Índice (2015 = 100)') });
     t2.setDatos(aTabla(s2));
 
     // 3. Comparativa europea
@@ -64,7 +64,7 @@ export default {
     const d = europa.precio_vivienda_var || {};
     const orden = ctx.paises.filter((p) => d[p]);
     dibujar(t3.grafico, orden.map((p) => linea(ctx.nombrePais(p), d[p], COLORES[p], { sufijo: ' %', line: { width: p === 'ES' || p === 'EA' ? 2.8 : 1.8 } })),
-      { yaxis: { ticksuffix: ' %' } });
+      { yaxis: eje('Variación anual (%)', ' %') });
     t3.setDatos(aTabla(Object.fromEntries(orden.map((p) => [`${ctx.nombrePais(p)} (%)`, d[p]]))));
   },
 };

@@ -51,6 +51,7 @@ Otros comandos útiles:
 | Comando | Qué hace |
 |---|---|
 | `python scripts/actualizar_datos.py` | Descarga todos los datos sin abrir la web y muestra un resumen por fuente. |
+| `python scripts/verificar_datos.py` | Comprueba el último dato de cada indicador contra la API oficial (consulta independiente) y guarda el resultado en `data/processed/verificacion.json`. |
 | `python scripts/ejemplo_laboratorio.py` | Ejemplo completo de análisis con datos reales y Excel final. |
 | `python -m unittest -v` | Ejecuta los 77 tests. |
 
@@ -305,6 +306,9 @@ Los datos no se guardan en el repositorio (`data/processed/` está en `.gitignor
 ---
 
 ## Decisiones técnicas y limitaciones
+
+- **Enfoque descriptivo:** los gráficos y textos no califican los datos. Los colores solo indican «más alto / más bajo» (o «por encima / por debajo» de un objetivo oficial, como el 2 % del BCE), nunca «bueno / malo». Todos los ejes llevan título con su unidad (%, €, puntos básicos, índice 2015 = 100).
+- **Verificación diaria:** después de descargar, `scripts/verificar_datos.py` compara el último valor de cada indicador con la fuente oficial; el resultado se ve en la página «Sobre el proyecto».
 
 - **Solo biblioteca estándar.** El ordenador donde se desarrolló tiene *Smart App Control* de Windows,
   que bloquea las librerías con código compilado sin firmar (numpy, pandas, pyarrow…). Por eso no se usan

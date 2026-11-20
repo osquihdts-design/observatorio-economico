@@ -4,31 +4,29 @@ import { get, series } from '../api.js';
 import { COLORES, descargarCSV, dibujar, fechaTexto, fmt, layout, sparkline, tarjeta, tono } from '../graficos.js';
 import { explicacion } from '../academico.js';
 
-// sentido: 1 = que suba es bueno · -1 = que suba es malo · 0 = neutro · 'objetivo' = mejor cuanto más cerca del 2 %
+// Las variaciones se muestran sin color de valoración (ni verde ni rojo): solo suben, bajan o se mantienen.
 const KPIS = [
-  { id: 'ipc_general', pais: 'ES', titulo: 'Inflación (IPC)', ref: { id: 'iapc_general', pais: 'EA', texto: 'Zona euro (IAPC)' }, sentido: 'objetivo', pagina: 'inflacion' },
-  { id: 'paro', pais: 'ES', titulo: 'Tasa de paro', ref: { id: 'paro', pais: 'EA', texto: 'Zona euro' }, sentido: -1, pagina: 'laboral' },
-  { id: 'pib_var', pais: 'ES', titulo: 'Crecimiento del PIB', ref: { id: 'pib_var', pais: 'EA', texto: 'Zona euro' }, sentido: 1, pagina: 'mapa/pib_var' },
-  { id: 'euribor_12m', pais: 'EA', titulo: 'Euríbor 12 meses', ref: { id: 'bce_deposito', pais: 'EA', texto: 'Tipo BCE' }, sentido: 0, pagina: 'monetaria' },
-  { id: 'ipv_general_var', pais: 'ES', titulo: 'Precio de la vivienda', ref: { id: 'precio_vivienda_var', pais: 'EA', texto: 'Zona euro' }, sentido: 0, pagina: 'vivienda' },
+  { id: 'ipc_general', pais: 'ES', titulo: 'Inflación (IPC)', ref: { id: 'iapc_general', pais: 'EA', texto: 'Zona euro (IAPC)' }, pagina: 'inflacion' },
+  { id: 'paro', pais: 'ES', titulo: 'Tasa de paro', ref: { id: 'paro', pais: 'EA', texto: 'Zona euro' }, pagina: 'laboral' },
+  { id: 'pib_var', pais: 'ES', titulo: 'Crecimiento del PIB', ref: { id: 'pib_var', pais: 'EA', texto: 'Zona euro' }, pagina: 'mapa/pib_var' },
+  { id: 'euribor_12m', pais: 'EA', titulo: 'Euríbor 12 meses', ref: { id: 'bce_deposito', pais: 'EA', texto: 'Tipo BCE' }, pagina: 'monetaria' },
+  { id: 'ipv_general_var', pais: 'ES', titulo: 'Precio de la vivienda', ref: { id: 'precio_vivienda_var', pais: 'EA', texto: 'Zona euro' }, pagina: 'vivienda' },
 ];
 
-// Ejes del radar: cuanto más lejos del centro, mejor posición entre los 27 países de la UE.
+// Ejes del radar: posición de cada país entre los 27 de la UE según el valor del indicador (percentil):
+// 0 = el valor más bajo de la UE, 100 = el más alto. Describe dónde se sitúa, sin decir si es bueno o malo.
 const RADAR = [
-  { id: 'iapc_general', eje: 'Inflación', mejor: (v) => -Math.abs(v - 2) },
-  { id: 'paro', eje: 'Paro', mejor: (v) => -v },
-  { id: 'paro_jovenes', eje: 'Paro juvenil', mejor: (v) => -v },
-  { id: 'pib_var', eje: 'Crecimiento', mejor: (v) => v },
-  { id: 'saldo_publico', eje: 'Saldo público', mejor: (v) => v },
-  { id: 'deuda_publica', eje: 'Deuda', mejor: (v) => -v },
-  { id: 'bono_10a', eje: 'Coste de la deuda', mejor: (v) => -v },
+  { id: 'iapc_general', eje: 'Inflación' },
+  { id: 'paro', eje: 'Paro' },
+  { id: 'paro_jovenes', eje: 'Paro juvenil' },
+  { id: 'pib_var', eje: 'Crecimiento del PIB' },
+  { id: 'saldo_publico', eje: 'Saldo público' },
+  { id: 'deuda_publica', eje: 'Deuda pública' },
+  { id: 'bono_10a', eje: 'Bono a 10 años' },
 ];
 
-function claseDelta(k, actual, anterior) {
-  const d = actual - anterior;
-  if (Math.abs(d) < 0.005 || k.sentido === 0) return 'neutro';
-  if (k.sentido === 'objetivo') return Math.abs(actual - 2) < Math.abs(anterior - 2) ? 'bueno' : 'malo';
-  return d * k.sentido > 0 ? 'bueno' : 'malo';
+function claseDelta() {
+  return 'neutro';
 }
 
 function tarjetaKpi(k, datos, ctx) {
@@ -56,11 +54,11 @@ function diferencial(a, b) {
 }
 
 function trazasDiferencial(nombre, puntos, eje) {
-  // Dos áreas: positiva en rojo (España peor) y negativa en verde (España mejor).
+  // Dos áreas de colores neutros: España por encima (naranja) o por debajo (azul) de la zona euro.
   const x = puntos.map((p) => p[0]);
   return [
-    { x, y: puntos.map((p) => Math.max(p[1], 0)), type: 'scatter', mode: 'lines', fill: 'tozeroy', line: { width: 0 }, fillcolor: 'rgba(200,16,46,0.25)', hoverinfo: 'skip', showlegend: false, xaxis: 'x', yaxis: eje },
-    { x, y: puntos.map((p) => Math.min(p[1], 0)), type: 'scatter', mode: 'lines', fill: 'tozeroy', line: { width: 0 }, fillcolor: 'rgba(26,127,75,0.25)', hoverinfo: 'skip', showlegend: false, xaxis: 'x', yaxis: eje },
+    { x, y: puntos.map((p) => Math.max(p[1], 0)), type: 'scatter', mode: 'lines', fill: 'tozeroy', line: { width: 0 }, fillcolor: 'rgba(233,162,59,0.30)', hoverinfo: 'skip', showlegend: false, xaxis: 'x', yaxis: eje },
+    { x, y: puntos.map((p) => Math.min(p[1], 0)), type: 'scatter', mode: 'lines', fill: 'tozeroy', line: { width: 0 }, fillcolor: 'rgba(76,120,168,0.28)', hoverinfo: 'skip', showlegend: false, xaxis: 'x', yaxis: eje },
     { x, y: puntos.map((p) => p[1]), type: 'scatter', mode: 'lines', name: nombre, line: { color: '#1b1f24', width: 1.6 }, xaxis: 'x', yaxis: eje, hovertemplate: `%{y:+.2f} pp<extra>${nombre}</extra>` },
   ];
 }
@@ -72,12 +70,12 @@ function puntuaciones(resumen, nombres) {
   for (const r of RADAR) {
     const filas = resumen.filter((f) => f.indicador === r.id && ue.includes(f.pais));
     if (filas.length < 15) continue;
-    const valor = Object.fromEntries(filas.map((f) => [f.pais, r.mejor(f.valor)]));
+    const valor = Object.fromEntries(filas.map((f) => [f.pais, f.valor]));
     const posicion = (v) => (100 * filas.filter((f) => valor[f.pais] < v).length) / (filas.length - 1);
     salida[r.eje] = { valores: Object.fromEntries(filas.map((f) => [f.pais, posicion(valor[f.pais])])), n: filas.length,
       puesto: (c) => filas.filter((f) => valor[f.pais] > valor[c]).length + 1, ea: (() => {
         const ea = resumen.find((f) => f.indicador === r.id && f.pais === 'EA');
-        return ea ? Math.min(100, posicion(r.mejor(ea.valor))) : null;
+        return ea ? Math.min(100, posicion(ea.valor)) : null;
       })() };
   }
   return salida;
@@ -92,7 +90,7 @@ function radar(div, punt, ctx) {
     type: 'scatterpolar', r: cerrar(valores), theta: cerrar(ejes), name: nombre, mode: 'lines+markers',
     line: { color, width: relleno ? 2.6 : 1.4, shape: 'spline', smoothing: 0.6 }, marker: { size: relleno ? 6 : 3, color },
     fill: relleno ? 'toself' : 'none', fillcolor: relleno ? `${color}33` : undefined,
-    hovertemplate: `<b>${nombre}</b><br>%{theta}: mejor que el %{r:.0f} % de la UE<extra></extra>`,
+    hovertemplate: `<b>${nombre}</b><br>%{theta}: valor más alto que el %{r:.0f} % de los países de la UE<extra></extra>`,
   });
   const trazas = [
     ...comparar.map((c) => traza(ctx.nombrePais(c), ejes.map((e) => punt[e].valores[c] ?? null), tono(COLORES[c] || '#94a3b8'), false)),
@@ -226,8 +224,8 @@ export default {
     const resumen = ctx.resumen || [];
     const punt = puntuaciones(resumen, ctx.catalogo.nombres || {});
     const ejes = Object.keys(punt);
-    const mejor = ejes.length ? ejes.reduce((a, b) => ((punt[a].valores.ES ?? -1) >= (punt[b].valores.ES ?? -1) ? a : b)) : null;
-    const peor = ejes.length ? ejes.reduce((a, b) => ((punt[a].valores.ES ?? 101) <= (punt[b].valores.ES ?? 101) ? a : b)) : null;
+    const masAlto = ejes.length ? ejes.reduce((a, b) => ((punt[a].valores.ES ?? -1) >= (punt[b].valores.ES ?? -1) ? a : b)) : null;
+    const masBajo = ejes.length ? ejes.reduce((a, b) => ((punt[a].valores.ES ?? 101) <= (punt[b].valores.ES ?? 101) ? a : b)) : null;
     const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 
     nodo.innerHTML = `
@@ -237,7 +235,7 @@ export default {
           <h1>España,<br><span class="degradado">en tiempo real</span></h1>
           <p>Inflación, empleo, tipos de interés, vivienda y finanzas públicas, descargados de INE, Eurostat y el BCE
           y comparados con los 27 países de la Unión Europea.
-          ${mejor ? `Hoy, España destaca en <strong>${mejor.toLowerCase()}</strong> (puesto ${punt[mejor].puesto('ES')} de ${punt[mejor].n}) y queda peor en <strong>${peor.toLowerCase()}</strong> (puesto ${punt[peor].puesto('ES')} de ${punt[peor].n}).` : ''}</p>
+          ${masAlto ? `Ordenando los países de la UE de mayor a menor valor, el puesto más alto de España es en <strong>${masAlto.toLowerCase()}</strong> (${punt[masAlto].puesto('ES')}.º de ${punt[masAlto].n}) y el más bajo, en <strong>${masBajo.toLowerCase()}</strong> (${punt[masBajo].puesto('ES')}.º de ${punt[masBajo].n}).` : ''}</p>
           <div class="chips-heroe">
             ${chip(resumen, 'ipc_general', 'ES', 'IPC', 'inflacion')}
             ${chip(resumen, 'paro', 'ES', 'Paro', 'mapa/paro')}
@@ -249,7 +247,7 @@ export default {
         </div>
         <div>
           <div class="heroe-radar" data-radar></div>
-          <p class="fuente-nota" style="text-align:center;margin:2px 0 0">Radar de posición europea: cuanto más lejos del centro, mejor que más países de la UE.</p>
+          <p class="fuente-nota" style="text-align:center;margin:2px 0 0">Posición en la UE: cuanto más lejos del centro, más alto es el valor del país frente a los demás (percentil). No indica si es bueno o malo.</p>
         </div>
       </section>
       <div class="kpis">${KPIS.map((k) => tarjetaKpi(k, kpi, ctx)).join('')}</div>
@@ -260,7 +258,7 @@ export default {
     // Divergencia España – zona euro
     const t = tarjeta({
       titulo: 'Divergencia macroeconómica: España frente a la zona euro',
-      sub: 'Diferencial en puntos porcentuales. Rojo: España por encima (peor) · Verde: por debajo (mejor).',
+      sub: 'Diferencia entre España y la zona euro, en puntos porcentuales. Naranja: España por encima · Azul: España por debajo.',
       fuente: 'Eurostat (IAPC y tasa de paro armonizada, mensuales)', clave: 'divergencia', alto: '',
     });
     t.grafico.style.height = '460px';
@@ -269,8 +267,8 @@ export default {
     const difParo = diferencial(div.paro?.ES || [], div.paro?.EA || []);
     const base = layout();
     dibujar(t.grafico, [...trazasDiferencial('Diferencial de inflación', difInfl, 'y'), ...trazasDiferencial('Diferencial de paro', difParo, 'y2')], {
-      yaxis: { ...base.yaxis, domain: [0.56, 1], title: { text: 'Inflación (pp)', font: { size: 12 } } },
-      yaxis2: { ...base.yaxis, domain: [0, 0.44], anchor: 'x', title: { text: 'Paro (pp)', font: { size: 12 } } },
+      yaxis: { ...base.yaxis, domain: [0.56, 1], title: { text: 'Inflación: diferencia (pp)', font: { size: 12 } }, ticksuffix: ' pp' },
+      yaxis2: { ...base.yaxis, domain: [0, 0.44], anchor: 'x', title: { text: 'Paro: diferencia (pp)', font: { size: 12 } }, ticksuffix: ' pp' },
       showlegend: false,
       margin: { l: 60, r: 18, t: 8, b: 30 },
     });

@@ -16,9 +16,6 @@ const DE_ISO3 = Object.fromEntries(Object.entries(ISO3).map(([a, b]) => [b, a]))
 
 // Escalas de color según cómo se lee cada indicador.
 const ESCALAS = {
-  malo: ['#1e3a8a', '#0891b2', '#22d3ee', '#a3e635', '#facc15', '#f97316', '#e11d48'],   // alto = peor (rojo)
-  bueno: ['#e11d48', '#f97316', '#facc15', '#a3e635', '#22d3ee', '#0891b2', '#1e3a8a'],  // alto = mejor (azul)
-  objetivo: ['#2563eb', '#38bdf8', '#34d399', '#f59e0b', '#e11d48'],                     // verde en el objetivo
   cambio: ['#2563eb', '#60a5fa', '#94a3b8', '#fb923c', '#ea580c'],                       // baja (azul) · sube (naranja)
   nivel: ['#312e81', '#6d28d9', '#a855f7', '#ec4899', '#f59e0b', '#fde047'],             // solo intensidad
 };
@@ -27,24 +24,24 @@ const ESCALAS = {
 // `centro` centra la escala de color en ese valor (el objetivo o el cero) para que se lea a simple vista.
 const FICHAS = {
   iapc_general: {
-    unidad: '% de variación anual', corta: '%', escala: 'objetivo', centro: 2, referencia: 2, refTexto: 'Objetivo del BCE (2 %)',
+    unidad: '% de variación anual', corta: '%', escala: 'cambio', centro: 2, referencia: 2, refTexto: 'Objetivo del BCE (2 %)',
     que: 'Cuánto han subido los precios de consumo respecto al mismo mes del año anterior. Es el índice armonizado (IAPC), que se calcula igual en todos los países para poder compararlos.',
-    leer: 'El BCE busca una inflación del 2 %. Verde = cerca del objetivo; naranja y rojo = inflación alta; azul = muy baja o negativa (deflación).',
+    leer: 'El objetivo del BCE es el 2 %. Gris = cerca del 2 %; naranja = por encima; azul = por debajo (los valores negativos indican que los precios bajan).',
   },
   iapc_subyacente: {
-    unidad: '% de variación anual', corta: '%', escala: 'objetivo', centro: 2, referencia: 2, refTexto: 'Objetivo del BCE (2 %)',
+    unidad: '% de variación anual', corta: '%', escala: 'cambio', centro: 2, referencia: 2, refTexto: 'Objetivo del BCE (2 %)',
     que: 'Inflación sin energía ni alimentos (los precios más volátiles). Muestra la tendencia de fondo de los precios.',
-    leer: 'Si la subyacente sigue alta cuando la general ya ha bajado, la inflación se ha «contagiado» al resto de la economía. Verde = cerca del 2 %.',
+    leer: 'Compárala con la inflación general para ver cuánto pesan la energía y los alimentos. Gris = cerca del 2 %; naranja = por encima; azul = por debajo.',
   },
   paro: {
-    unidad: '% de la población activa', corta: '%', escala: 'malo',
+    unidad: '% de la población activa', corta: '%', escala: 'nivel',
     que: 'Porcentaje de personas que buscan empleo y no lo encuentran sobre el total de la población activa (las que trabajan o buscan trabajo). Mensual y desestacionalizada.',
-    leer: 'Cuanto más alto, peor. Rojo = más paro.',
+    leer: 'Tonos más intensos = tasa de paro más alta.',
   },
   paro_jovenes: {
-    unidad: '% de los activos menores de 25 años', corta: '%', escala: 'malo',
+    unidad: '% de los activos menores de 25 años', corta: '%', escala: 'nivel',
     que: 'Tasa de paro de los menores de 25 años: parados jóvenes sobre los jóvenes que trabajan o buscan trabajo (no sobre todos los jóvenes, porque muchos estudian).',
-    leer: 'Cuanto más alto, peor. Rojo = más paro juvenil.',
+    leer: 'Tonos más intensos = tasa de paro juvenil más alta.',
   },
   precio_vivienda_indice: {
     unidad: 'índice (2015 = 100)', corta: '', escala: 'nivel', referencia: 100, refTexto: 'Precio de 2015 (= 100)',
@@ -57,31 +54,31 @@ const FICHAS = {
     leer: 'Positivo (naranja) = la vivienda se encarece; negativo (azul) = se abarata.',
   },
   pib_var: {
-    unidad: '% de variación interanual', corta: '%', escala: 'bueno', referencia: 0, refTexto: 'Crecimiento cero',
+    unidad: '% de variación interanual', corta: '%', escala: 'nivel', referencia: 0, refTexto: 'Crecimiento cero',
     que: 'Crecimiento de la economía: PIB en volumen (sin el efecto de los precios) respecto al mismo trimestre del año anterior.',
-    leer: 'Cuanto más alto, mejor (azul). Negativo = la economía se contrae; si dura dos trimestres seguidos se suele hablar de recesión.',
+    leer: 'Valores negativos = la economía produce menos que un año antes. Dos trimestres seguidos de caída trimestral se suelen llamar recesión técnica.',
   },
   bono_10a: {
-    unidad: '% anual (rentabilidad)', corta: '%', escala: 'malo', dec: 2,
+    unidad: '% anual (rentabilidad)', corta: '%', escala: 'nivel', dec: 2,
     que: 'Interés que paga cada Estado al pedir prestado a 10 años (rentabilidad de su bono, media del mes).',
-    leer: 'Cuanto más alto, más le cuesta endeudarse y más riesgo ven los inversores. Estonia no tiene bonos a 10 años, por eso no aparece.',
+    leer: 'Una rentabilidad más alta significa que el Estado paga más intereses por la deuda nueva. Estonia no emite bonos a 10 años, por eso no aparece.',
   },
   deuda_publica: {
-    unidad: '% del PIB', corta: '%', escala: 'malo', referencia: 60, refTexto: 'Límite de Maastricht (60 %)',
+    unidad: '% del PIB', corta: '%', escala: 'nivel', referencia: 60, refTexto: 'Límite de Maastricht (60 %)',
     que: 'Deuda bruta de todas las administraciones públicas (Estado, comunidades, ayuntamientos y Seguridad Social) dividida entre lo que produce el país en un año (PIB).',
-    leer: 'Las reglas europeas fijan un límite del 60 % del PIB. Más alto (rojo) = más endeudado.',
+    leer: 'La línea de referencia marca el 60 % del PIB, el límite de las reglas fiscales europeas (Tratado de Maastricht).',
   },
   saldo_publico: {
-    unidad: '% del PIB', corta: '%', escala: 'bueno', centro: 0, referencia: -3, refTexto: 'Límite de déficit (−3 %)',
+    unidad: '% del PIB', corta: '%', escala: 'nivel', centro: 0, referencia: -3, refTexto: 'Límite de déficit (−3 %)',
     que: 'Ingresos menos gastos de las administraciones públicas, en porcentaje del PIB. Negativo = déficit; positivo = superávit.',
-    leer: 'Las reglas europeas fijan un déficit máximo del 3 % del PIB (−3). Más alto (azul) = cuentas más saneadas.',
+    leer: 'Negativo = déficit (se gasta más de lo que se ingresa); positivo = superávit. Las reglas europeas fijan un déficit máximo del 3 % del PIB.',
   },
 };
 // Paro juvenil por nivel de estudios (trimestral, sin desestacionalizar)
 const PARO_ESTUDIOS = (nivel, que) => ({
-  unidad: '% de los activos de 15 a 24 años', corta: '%', escala: 'malo',
+  unidad: '% de los activos de 15 a 24 años', corta: '%', escala: 'nivel',
   que: `Paro de los jóvenes de 15 a 24 años que tienen ${que}, sobre los que trabajan o buscan trabajo con ese nivel. Trimestral y sin desestacionalizar.`,
-  leer: `Cuanto más alto, peor (rojo). Compáralo con los otros niveles: el paro baja cuanto más se estudia. Nivel: ${nivel}.`,
+  leer: `Tonos más intensos = más paro. Compáralo con los otros niveles de estudios. Nivel: ${nivel}.`,
 });
 Object.assign(FICHAS, {
   paro_jovenes_estudios_bajos: PARO_ESTUDIOS('CINE 0-2', 'como mucho la ESO'),
@@ -92,52 +89,52 @@ Object.assign(FICHAS, {
 // Jóvenes, empleo y tecnología (anuales; referencia: UE-27)
 Object.assign(FICHAS, {
   ninis: {
-    unidad: '% de los jóvenes de 15 a 29 años', corta: '%', escala: 'malo',
-    que: 'Jóvenes que no tienen empleo y no estudian ni se forman (tasa «NEET»). Mide el riesgo de quedarse descolgado del mercado laboral, mejor que el paro, porque incluye a quienes ya ni buscan trabajo.',
-    leer: 'Cuanto más alto, peor (rojo). La UE se fijó como meta bajar del 9 % en 2030.',
+    unidad: '% de los jóvenes de 15 a 29 años', corta: '%', escala: 'nivel',
+    que: 'Jóvenes que no tienen empleo y no estudian ni se forman (tasa «NEET»). A diferencia de la tasa de paro, incluye también a quienes no buscan trabajo.',
+    leer: 'La meta de la UE para 2030 es bajar del 9 %.',
   },
   empleo_jovenes: {
-    unidad: '% de la población de 15 a 24 años', corta: '%', escala: 'bueno',
+    unidad: '% de la población de 15 a 24 años', corta: '%', escala: 'nivel',
     que: 'Jóvenes con empleo sobre todos los jóvenes de esa edad, estudien o no.',
-    leer: 'Más alto (azul) = más jóvenes trabajando. Ojo: un valor bajo puede deberse a que muchos estudian, no solo al paro; compáralo con la tasa de ninis.',
+    leer: 'Un valor bajo puede deberse a que muchos jóvenes estudian, no solo al paro: compáralo con la tasa de jóvenes que ni estudian ni trabajan.',
   },
   abandono_escolar: {
-    unidad: '% de los jóvenes de 18 a 24 años', corta: '%', escala: 'malo', referencia: 9, refTexto: 'Meta UE 2030 (9 %)',
+    unidad: '% de los jóvenes de 18 a 24 años', corta: '%', escala: 'nivel', referencia: 9, refTexto: 'Meta UE 2030 (9 %)',
     que: 'Jóvenes que dejaron de estudiar con, como mucho, la ESO, y no siguen formándose.',
-    leer: 'Cuanto más alto, peor (rojo). La meta europea para 2030 es bajar del 9 %.',
+    leer: 'La meta europea para 2030 es bajar del 9 %.',
   },
   titulados_superiores: {
-    unidad: '% de la población de 25 a 34 años', corta: '%', escala: 'bueno', referencia: 45, refTexto: 'Meta UE 2030 (45 %)',
+    unidad: '% de la población de 25 a 34 años', corta: '%', escala: 'nivel', referencia: 45, refTexto: 'Meta UE 2030 (45 %)',
     que: 'Jóvenes adultos con FP de grado superior, grado universitario, máster o doctorado.',
-    leer: 'Más alto (azul) = población joven más formada. La meta europea para 2030 es el 45 %.',
+    leer: 'La meta europea para 2030 es llegar al 45 %.',
   },
   competencias_digitales_jovenes: {
-    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'bueno',
+    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'nivel',
     que: 'Jóvenes con competencias digitales al menos básicas en las cinco áreas que mide la UE: información, comunicación, creación de contenidos, seguridad y resolución de problemas.',
-    leer: 'Más alto (azul) = más jóvenes preparados para un mercado laboral digital.',
+    leer: 'Mide competencias básicas, no especializadas. Eurostat lo mide cada dos años.',
   },
   especialistas_tic: {
-    unidad: '% del empleo total', corta: '%', escala: 'bueno',
+    unidad: '% del empleo total', corta: '%', escala: 'nivel',
     que: 'Personas ocupadas como especialistas en tecnologías de la información y la comunicación (programación, sistemas, redes, datos…).',
-    leer: 'Más alto (azul) = economía más tecnológica. La UE aspira a 20 millones de especialistas TIC en 2030.',
+    leer: 'La UE se ha fijado como objetivo llegar a 20 millones de especialistas TIC en 2030.',
   },
   empresas_ia: {
-    unidad: '% de las empresas de 10 o más empleados', corta: '%', escala: 'bueno',
+    unidad: '% de las empresas de 10 o más empleados', corta: '%', escala: 'nivel',
     que: 'Empresas que usan al menos una tecnología de inteligencia artificial (análisis de textos, reconocimiento de voz o imágenes, aprendizaje automático, IA generativa…).',
-    leer: 'Más alto (azul) = más adopción de IA en el tejido empresarial, y más tareas que pueden cambiar.',
+    leer: 'Cuenta cualquier uso de una tecnología de IA, sea cual sea su intensidad.',
   },
   ia_generativa_jovenes: {
-    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'bueno',
+    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'nivel',
     que: 'Jóvenes que usaron herramientas de IA generativa (ChatGPT, Gemini, Copilot…) en los últimos 3 meses. Eurostat lo pregunta desde 2025.',
-    leer: 'Más alto (azul) = uso más extendido. Solo hay un año de datos: compara países, todavía no la evolución.',
+    leer: 'Solo hay un año de datos (2025): permite comparar países y edades, todavía no ver la evolución.',
   },
   ia_generativa_total: {
-    unidad: '% de la población de 16 a 74 años', corta: '%', escala: 'bueno',
+    unidad: '% de la población de 16 a 74 años', corta: '%', escala: 'nivel',
     que: 'Personas que usaron IA generativa en los últimos 3 meses. Eurostat lo pregunta desde 2025.',
     leer: 'Compáralo con el de los jóvenes para ver la brecha generacional.',
   },
   ia_generativa_trabajo: {
-    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'bueno',
+    unidad: '% de los jóvenes de 16 a 24 años', corta: '%', escala: 'nivel',
     que: 'Jóvenes que usaron IA generativa con fines profesionales (en el trabajo) en los últimos 3 meses. Eurostat lo pregunta desde 2025.',
     leer: 'Mide cuánto ha entrado la IA en el trabajo de los jóvenes, no en el ocio o los estudios.',
   },

@@ -1,19 +1,19 @@
 // Jóvenes, empleo y tecnología: situación laboral de los jóvenes, formación y llegada de la inteligencia artificial.
 // Todos los datos son oficiales (Eurostat e INE) y se actualizan solos cuando se publica un dato nuevo.
 import { series } from '../api.js';
-import { aTabla, COLORES, dibujar, fechaTexto, fmt, linea, tarjeta } from '../graficos.js';
+import { aTabla, COLORES, dibujar, fechaTexto, fmt, linea, tarjeta, eje } from '../graficos.js';
 import { markdown } from '../investigacion.js';
 
-// sentido: 1 = más es mejor · -1 = más es peor · 0 = neutro
+// Tarjetas: España frente a la referencia europea, sin valorar si la diferencia es buena o mala.
 const TARJETAS = [
-  { id: 'paro_jovenes', titulo: 'Paro juvenil (menores de 25)', sentido: -1, ref: 'EA' },
-  { id: 'ninis', titulo: 'Ni estudian ni trabajan (15-29)', sentido: -1, ref: 'UE' },
-  { id: 'empleo_jovenes', titulo: 'Jóvenes con empleo (15-24)', sentido: 1, ref: 'UE' },
-  { id: 'paro_jovenes_estudios_superiores', titulo: 'Paro juvenil con estudios superiores', sentido: -1, ref: 'UE' },
-  { id: 'salario_jovenes', titulo: 'Salario medio bruto (16-24)', sentido: 0, ref: null },
-  { id: 'ia_generativa_jovenes', titulo: 'Jóvenes que usan IA generativa', sentido: 0, ref: 'UE' },
-  { id: 'ia_generativa_trabajo', titulo: 'Jóvenes que usan IA para trabajar', sentido: 0, ref: 'UE' },
-  { id: 'empresas_ia', titulo: 'Empresas que usan IA', sentido: 0, ref: 'UE' },
+  { id: 'paro_jovenes', titulo: 'Paro juvenil (menores de 25)', ref: 'EA' },
+  { id: 'ninis', titulo: 'Ni estudian ni trabajan (15-29)', ref: 'UE' },
+  { id: 'empleo_jovenes', titulo: 'Jóvenes con empleo (15-24)', ref: 'UE' },
+  { id: 'paro_jovenes_estudios_superiores', titulo: 'Paro juvenil con estudios superiores', ref: 'UE' },
+  { id: 'salario_jovenes', titulo: 'Salario medio bruto (16-24)', ref: null },
+  { id: 'ia_generativa_jovenes', titulo: 'Jóvenes que usan IA generativa', ref: 'UE' },
+  { id: 'ia_generativa_trabajo', titulo: 'Jóvenes que usan IA para trabajar', ref: 'UE' },
+  { id: 'empresas_ia', titulo: 'Empresas que usan IA', ref: 'UE' },
 ];
 const ANUALES = ['ninis', 'empleo_jovenes', 'abandono_escolar', 'titulados_superiores', 'competencias_digitales_jovenes',
   'especialistas_tic', 'empresas_ia', 'ia_generativa_jovenes', 'ia_generativa_total', 'ia_generativa_trabajo',
@@ -23,16 +23,16 @@ const ESTUDIOS = ['paro_jovenes_estudios_bajos', 'paro_jovenes_estudios_medios',
 const PARA_TU_TRABAJO = `
 ### Preguntas de investigación que puedes contestar con estos datos
 
-- ¿Tienen los jóvenes españoles **peor acceso al empleo** que los europeos? (paro juvenil, tasa de empleo y ninis frente a la UE).
-- ¿Están **mejor formados** que hace diez años y que la media europea? (titulados superiores, abandono escolar).
-- ¿Están **preparados para un mercado laboral digital**? (competencias digitales, especialistas TIC).
+- ¿En qué se diferencia el **acceso al empleo** de los jóvenes españoles del de los europeos? (paro juvenil, tasa de empleo y ninis frente a la UE).
+- ¿Cómo ha cambiado su **nivel de formación** en diez años y cómo se compara con la media europea? (titulados superiores, abandono escolar).
+- ¿Qué **competencias digitales** tienen y cuánto empleo tecnológico hay? (competencias digitales, especialistas TIC).
 - ¿Usan los jóvenes la IA **más que el resto de la población**? ¿Y para trabajar? (IA generativa por edad y uso profesional).
 - ¿Avanzan las empresas españolas en IA **al mismo ritmo** que las europeas? (empresas que usan IA, 2021-2025).
 
 ### Cómo interpretarlos bien
 
 - **Paro juvenil y tasa de empleo no son lo contrario.** El paro se calcula sobre quienes trabajan o buscan trabajo; la tasa de empleo, sobre *todos* los jóvenes (muchos estudian). Un país puede tener poco empleo juvenil simplemente porque sus jóvenes estudian más.
-- **Los «ninis» son el mejor indicador de exclusión**: incluyen a quienes ya no buscan empleo.
+- **Los «ninis» completan al paro**: incluyen también a quienes no buscan empleo. La UE usa esta tasa en sus objetivos para 2030.
 - **Salarios: son brutos y medios.** El INE da el salario *bruto* (antes de impuestos y cotizaciones) y lo calcula como el total del año entre 12. Para compararlo con un sueldo *neto* deseado, recuerda que el neto es bastante menor. Además, la media sube por unos pocos sueldos muy altos: el INE también publica la mediana y los deciles.
 - **Paro por estudios: fuentes que no coinciden del todo.** Aquí se usa Eurostat (15 a 24 años, trimestral sin desestacionalizar); los informes del Ministerio de Trabajo usan la EPA con 16 a 24 años y su propia agrupación de estudios. Las cifras se parecen pero no son idénticas: cita siempre la fuente y el trimestre.
 - **IA generativa: solo hay un año (2025).** Sirve para comparar países y edades, todavía no para ver tendencias.
@@ -62,7 +62,7 @@ function tarjetaDato(t, datos, ctx) {
   const ref = ultimo(datos[t.id]?.[t.ref]);
   if (!info || !es) return '';
   const dif = ref ? es[1] - ref[1] : null;
-  const clase = dif == null || Math.abs(dif) < 0.05 || t.sentido === 0 ? 'neutro' : (dif * t.sentido > 0 ? 'bueno' : 'malo');
+  const clase = 'neutro';
   const nombreRef = t.ref === 'EA' ? 'zona euro' : 'UE-27';
   const euros = info.unidad === '€';
   const u = euros ? ' €' : ' %';
@@ -93,8 +93,8 @@ export default {
     nodo.innerHTML = `
       <header class="cabecera"><span class="etiqueta">Eurostat e INE · encuestas de población activa, educación y uso de las TIC</span>
         <h1>Jóvenes, empleo y <span class="degradado">tecnología</span></h1>
-        <p>¿Cómo les va a los jóvenes en el mercado laboral, están preparados para una economía digital y cuánto ha entrado ya la
-        inteligencia artificial en sus vidas y en las empresas? Datos oficiales de Eurostat y del INE, comparando España con la Unión Europea,
+        <p>Situación laboral de los jóvenes, su formación y competencias digitales, y el uso de la inteligencia artificial por los
+        jóvenes y por las empresas. Datos oficiales de Eurostat y del INE, comparando España con la Unión Europea,
         que se actualizan solos cada vez que se publica un dato nuevo.</p></header>
       <div class="kpis kpis-jovenes">${TARJETAS.map((t) => tarjetaDato(t, datos, ctx)).join('')}</div>
       <p class="fuente-nota">pp = puntos porcentuales de diferencia entre España y la referencia europea. Pulsa una tarjeta para ver los 27 países en el mapa.</p>
@@ -116,7 +116,7 @@ export default {
       dibujar(t.grafico, orden.map((p) => linea(nombre(p), d[p], COLORES[p] || '#6C757D',
         { sufijo: ' %', line: { width: anchoDe(p), dash: p === 'UE' || p === 'EA' ? 'dot' : 'solid' },
           extra: anual ? { mode: 'lines+markers', hovertemplate: `%{y:.1f} %<extra>${nombre(p)} · %{x|%Y}</extra>` } : {} })),
-      { yaxis: { ticksuffix: ' %' }, ...ejeAnual, ...extra });
+      { yaxis: eje(info.unidad === '%' ? '% de la población activa menor de 25 años' : info.unidad.charAt(0).toUpperCase() + info.unidad.slice(1), ' %'), ...ejeAnual, ...extra });
       t.setDatos(aTabla(Object.fromEntries(orden.map((p) => [`${nombre(p)} (%)`, d[p]]))));
       return t;
     };
@@ -141,7 +141,7 @@ export default {
             trazas.push(linea(`UE-27 · ${texto}`, datos[id].UE, color, { sufijo: ' %', line: { width: 1.4, dash: 'dot' }, extra: { legendgroup: id, showlegend: false } }));
           }
         }
-        dibujar(t.grafico, trazas, { yaxis: { ticksuffix: ' %', rangemode: 'tozero' } });
+        dibujar(t.grafico, trazas, { yaxis: eje('% de los activos de 15 a 24 años', ' %', { rangemode: 'tozero' }) });
         t.setDatos(aTabla(Object.fromEntries(hay.flatMap(([id, texto]) => [[`España · ${texto} (%)`, datos[id].ES], [`UE-27 · ${texto} (%)`, datos[id].UE || []]]))));
       }
       const salarios = [['salario_jovenes', 'De 16 a 24 años', '#C8102E'], ['salario_25_34', 'De 25 a 34 años', '#E9A23B'], ['salario_medio', 'Todas las edades', '#003399']]
@@ -154,7 +154,7 @@ export default {
         dibujar(t.grafico, salarios.map(([id, texto, color]) => linea(texto, datos[id].ES, color,
           { sufijo: ' €', line: { width: id === 'salario_jovenes' ? 2.8 : 2 },
             extra: { mode: 'lines+markers', hovertemplate: `%{y:,.0f} €<extra>${texto} · %{x|%Y}</extra>` } })),
-        { eventos: false, xaxis: { tickformat: '%Y' }, yaxis: { ticksuffix: ' €', rangemode: 'tozero' } });
+        { eventos: false, xaxis: { tickformat: '%Y' }, yaxis: eje('Euros brutos al mes', ' €', { rangemode: 'tozero' }) });
         t.setDatos(aTabla(Object.fromEntries(salarios.map(([id, texto]) => [`${texto} (€ brutos/mes)`, datos[id].ES]))));
       }
     }
@@ -167,14 +167,14 @@ export default {
     estudiosYSalarios();
 
     // 2. Formación
-    nodo.insertAdjacentHTML('beforeend', '<h2 class="titulo-bloque">2. Formación: ¿preparados para un mercado laboral tecnológico?</h2>');
+    nodo.insertAdjacentHTML('beforeend', '<h2 class="titulo-bloque">2. Formación y competencias digitales</h2>');
     const f2 = fila();
     grafico('titulados_superiores', 'Jóvenes con estudios superiores (25-34)', 'FP superior, grado, máster o doctorado.', f2);
     grafico('abandono_escolar', 'Abandono temprano de la educación (18-24)', 'Como mucho la ESO y sin seguir estudiando.', f2);
     grafico('competencias_digitales_jovenes', 'Jóvenes con competencias digitales al menos básicas (16-24)', 'Información, comunicación, creación de contenidos, seguridad y resolución de problemas.');
 
     // 3. Inteligencia artificial
-    nodo.insertAdjacentHTML('beforeend', '<h2 class="titulo-bloque">3. La inteligencia artificial ya está aquí</h2>');
+    nodo.insertAdjacentHTML('beforeend', '<h2 class="titulo-bloque">3. Inteligencia artificial: uso y adopción</h2>');
     const ia = ['ia_generativa_jovenes', 'ia_generativa_trabajo', 'ia_generativa_total'].map((id) => ctx.indicador(id)).filter(Boolean);
     const paisesIA = paises.filter((p) => ia.some((i) => datos[i.id]?.[p]?.length));
     if (ia.length && paisesIA.length) {
@@ -188,7 +188,7 @@ export default {
         type: 'bar', name: etiquetas[k], x: paisesIA.map(nombre), y: paisesIA.map((p) => ultimo(datos[i.id]?.[p])?.[1] ?? null),
         marker: { color: colores[k] }, hovertemplate: `%{y:.1f} %<extra>${etiquetas[k]}</extra>`,
         text: paisesIA.map((p) => { const v = ultimo(datos[i.id]?.[p]); return v ? `${fmt(v[1], 0)}` : ''; }), textposition: 'outside',
-      })), { barmode: 'group', hovermode: 'closest', yaxis: { ticksuffix: ' %', rangemode: 'tozero' }, eventos: false });
+      })), { barmode: 'group', hovermode: 'closest', yaxis: eje('% de cada grupo de población', ' %', { rangemode: 'tozero' }), eventos: false });
       t.setDatos({ cabeceras: ['País', ...etiquetas.map((e) => `${e} (%)`)], filas: paisesIA.map((p) => [nombre(p), ...ia.map((i) => ultimo(datos[i.id]?.[p])?.[1] ?? '')]) });
     }
     const f3 = fila();
