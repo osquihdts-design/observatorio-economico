@@ -19,15 +19,15 @@ export function iniciarFondo() {
     lienzo.width = ancho * ratio;
     lienzo.height = alto * ratio;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    const cuantos = Math.round(Math.min(90, (ancho * alto) / 16000));
+    const cuantos = Math.round(Math.min(40, (ancho * alto) / 34000));
     puntos = Array.from({ length: cuantos }, () => ({
       x: Math.random() * ancho, y: Math.random() * alto,
-      vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25, r: Math.random() * 1.4 + 0.6,
+      vx: (Math.random() - 0.5) * 0.08, vy: (Math.random() - 0.5) * 0.08, r: Math.random() * 1.2 + 0.5,
     }));
   }
 
   function color() {
-    return getComputedStyle(document.documentElement).getPropertyValue('--particulas').trim() || '0, 229, 255';
+    return getComputedStyle(document.documentElement).getPropertyValue('--particulas').trim() || '130, 174, 230';
   }
 
   let rgb = color();
@@ -37,16 +37,7 @@ export function iniciarFondo() {
     ctx.clearRect(0, 0, ancho, alto);
     const enlace = 130;
     for (const p of puntos) {
-      // El ratón empuja suavemente las partículas cercanas.
-      const dx = p.x - raton.x, dy = p.y - raton.y;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < 140 * 140 && d2 > 1) {
-        const f = (1 - Math.sqrt(d2) / 140) * 0.6;
-        p.vx += (dx / Math.sqrt(d2)) * f * 0.05;
-        p.vy += (dy / Math.sqrt(d2)) * f * 0.05;
-      }
-      p.vx *= 0.985; p.vy *= 0.985;
-      p.vx += (Math.random() - 0.5) * 0.01; p.vy += (Math.random() - 0.5) * 0.01;
+      // Deriva lenta y uniforme: un fondo tranquilo que no distrae de los datos.
       p.x += p.vx; p.y += p.vy;
       if (p.x < -10) p.x = ancho + 10; if (p.x > ancho + 10) p.x = -10;
       if (p.y < -10) p.y = alto + 10; if (p.y > alto + 10) p.y = -10;
@@ -58,18 +49,12 @@ export function iniciarFondo() {
         const dx = a.x - b.x, dy = a.y - b.y;
         const d = Math.hypot(dx, dy);
         if (d < enlace) {
-          ctx.strokeStyle = `rgba(${rgb}, ${0.16 * (1 - d / enlace)})`;
+          ctx.strokeStyle = `rgba(${rgb}, ${0.07 * (1 - d / enlace)})`;
           ctx.lineWidth = 1;
           ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         }
       }
-      // Líneas hacia el ratón: efecto de «red» que sigue al cursor.
-      const dm = Math.hypot(a.x - raton.x, a.y - raton.y);
-      if (dm < 180) {
-        ctx.strokeStyle = `rgba(${rgb}, ${0.35 * (1 - dm / 180)})`;
-        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(raton.x, raton.y); ctx.stroke();
-      }
-      ctx.fillStyle = `rgba(${rgb}, 0.55)`;
+      ctx.fillStyle = `rgba(${rgb}, 0.28)`;
       ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.fill();
     }
     if (!document.hidden && !sinMovimiento) requestAnimationFrame(cuadro);

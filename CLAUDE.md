@@ -61,7 +61,8 @@ Versión adaptada a Python estándar: SQLite en vez de DuckDB/Parquet, filas con
 13. ✅ Verificación y objetividad: `scripts/verificar_datos.py` (consulta independiente del último dato en INE/Eurostat/BCE; 66/66 coinciden el 20-11-2026) → `verificacion.json`, API `verificacion`, paso del workflow y tarjeta en `sobre.js`. `graficos.eje(titulo, sufijo)`: todos los ejes con título y unidad.
     - Enfoque descriptivo (decisión del usuario): nada de «mejor/peor» ni verde = bueno / rojo = malo. Escalas del mapa `nivel` y `cambio` (centrada en el objetivo); radar = percentil del valor bruto; deltas y ticker en colores neutros. No reintroducir juicios de valor.
 
-## Publicación
+14. ✅ Paleta «confianza y calma» (petición del usuario): azul institucional (claro #1f4f8f, oscuro #82aee6) + turquesa apagado; oscuro = azul noche #0f1621 (nunca negro puro ni neón). Tema por defecto = el del sistema (`prefers-color-scheme`). Fondo casi quieto (pocas partículas lentas, sin red que sigue al ratón, sin aurora animada), sin resplandores. Mapa: escala `nivel` en azules. Texto con contraste AA.
+
 - Repositorio público: https://github.com/osquihdts-design/observatorio-economico (rama `main`). Commits con el email noreply de GitHub.
 - GitHub Actions: `tests.yml` y `update_data.yml` (diaria 07:30 UTC y en cada push a main: datos como artifact + web en GitHub Pages). Acciones en v7 (Node 24); Pages: configure-pages@v6, upload-pages-artifact@v5, deploy-pages@v5.
 - Web pública: https://osquihdts-design.github.io/observatorio-economico/ — `scripts/publicar_web.py` genera `_site/` (web + JSON de catálogo, estado, resumen y series; `--ver` la sirve en :8600). `api.js` detecta `<meta name="observatorio-modo" content="estatico">`: sin POST (la curva de Phillips se calcula en JS), sin centro de investigación (es privado) ni botón de actualizar; el laboratorio muestra cómo usarlo en local.

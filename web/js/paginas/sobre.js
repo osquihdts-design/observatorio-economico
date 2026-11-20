@@ -17,6 +17,7 @@ const FUENTES = [
 ];
 
 const CAMBIOS = [
+  ['2026-11-20', 'Nueva paleta de colores más sobria (azul institucional, sin neón), fondo tranquilo y tema claro u oscuro según el sistema.'],
   ['2026-11-20', 'Comprobación diaria de los datos con las fuentes oficiales, ejes con su unidad en todos los gráficos y enfoque descriptivo: colores y textos sin juicios de valor.'],
   ['2026-11-20', 'Salario medio bruto de los jóvenes por edad (INE) y paro juvenil según el nivel de estudios (Eurostat).'],
   ['2026-11-19', 'Página «Jóvenes, empleo y tecnología»: ninis, empleo juvenil, formación, competencias digitales e inteligencia artificial (Eurostat), con la UE-27 como referencia.'],
