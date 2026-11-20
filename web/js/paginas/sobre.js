@@ -16,6 +16,7 @@ const FUENTES = [
 ];
 
 const CAMBIOS = [
+  ['2026-11-20', 'Salario medio bruto de los jóvenes por edad (INE) y paro juvenil según el nivel de estudios (Eurostat).'],
   ['2026-11-19', 'Página «Jóvenes, empleo y tecnología»: ninis, empleo juvenil, formación, competencias digitales e inteligencia artificial (Eurostat), con la UE-27 como referencia.'],
   ['2026-11-19', 'Guías para trabajos, informe en PDF, gráficos para insertar y página «Sobre el proyecto»; licencia CC BY 4.0.'],
   ['2026-11-19', 'Previsiones oficiales del BCE y del Banco de España en los gráficos; calendario de próximos datos.'],

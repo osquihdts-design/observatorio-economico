@@ -63,7 +63,7 @@ const FIJOS = ['ES', 'EA'];
 
 // Página donde se explica cada indicador (para la paleta de comandos y el ticker).
 const PAGINA_DE = (id) => (/^(ipc|iapc)/.test(id) ? 'inflacion'
-  : /^(ninis|empleo_jovenes|abandono|titulados|competencias|especialistas|empresas_ia|ia_)/.test(id) ? 'jovenes'
+  : /^(ninis|empleo_jovenes|abandono|titulados|competencias|especialistas|empresas_ia|ia_|salario|paro_jovenes_estudios)/.test(id) ? 'jovenes'
   : /paro/.test(id) ? 'laboral'
     : /^(bce|euribor|tipo_hipotecas|m3)/.test(id) ? 'monetaria'
       : /^(ipv|precio_vivienda|etcl)/.test(id) ? 'vivienda'

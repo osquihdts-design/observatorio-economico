@@ -268,6 +268,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent); box-shad
 .rejilla { display: grid; gap: 16px; }
 .rejilla > * { min-width: 0; }
 .dos { grid-template-columns: 1fr 1fr; }
+@media (max-width: 1250px) { .dos { grid-template-columns: 1fr; } } /* con la barra lateral, dos gráficos no caben bien */
 .tres { grid-template-columns: repeat(3, 1fr); }
 
 /* Tarjetas de cristal con foco de luz que sigue al ratón */

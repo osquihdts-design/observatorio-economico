@@ -127,6 +127,8 @@ y añade debajo: n, R² ajustado, tipo de errores y periodo muestral.
 | Cuánto vale hoy el dinero de otro año | Índice del IPC (calculadora) | [Inflación](#/inflacion) |
 | Cómo va el empleo | Tasa de paro armonizada (Eurostat, mensual y comparable entre países) | [Mercado laboral](#/laboral) |
 | La situación de los jóvenes | Paro de menores de 25 años | [Mercado laboral](#/laboral) · [Mapa](#/mapa/paro_jovenes) |
+| Cuánto cobran los jóvenes | Salario medio bruto mensual por edad (INE, EPA) | [Jóvenes y tecnología](#/jovenes) |
+| Si estudiar protege del paro | Paro juvenil según el nivel de estudios | [Jóvenes y tecnología](#/jovenes) · [Mapa](#/mapa/paro_jovenes_estudios_superiores) |
 | Cuántos jóvenes están descolgados | Jóvenes que ni estudian ni trabajan (tasa NEET) | [Jóvenes y tecnología](#/jovenes) · [Mapa](#/mapa/ninis) |
 | Si los jóvenes están preparados para la economía digital | Competencias digitales (16-24) y estudios superiores (25-34) | [Jóvenes y tecnología](#/jovenes) |
 | Cuánto usan los jóvenes la inteligencia artificial | Uso de IA generativa por edad y para trabajar (desde 2025) | [Jóvenes y tecnología](#/jovenes) · [Mapa](#/mapa/ia_generativa_jovenes) |
