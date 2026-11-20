@@ -59,6 +59,13 @@ INE = [
     {"id": "ipv_general_var", "nombre": "Precio de la vivienda: general (variación anual)", "unidad": "%", "frecuencia": "Q", "serie": "IPV1376"},
     {"id": "etcl_coste_salarial", "nombre": "Coste salarial por trabajador y mes", "unidad": "€", "frecuencia": "Q", "serie": "ETCL1527",
      "nota": "ETCL. Ambas jornadas, industria, construcción y servicios."},
+    # Salario medio bruto mensual del empleo principal (EPA, anual): total del año entre 12, con las pagas extra prorrateadas.
+    {"id": "salario_jovenes", "nombre": "Salario medio bruto mensual de los jóvenes (16-24 años)", "unidad": "€", "frecuencia": "A",
+     "serie": "EPA706586", "nota": "EPA, decil de salarios del empleo principal. Bruto (antes de impuestos y cotizaciones), jornada completa y parcial."},
+    {"id": "salario_25_34", "nombre": "Salario medio bruto mensual de 25 a 34 años", "unidad": "€", "frecuencia": "A",
+     "serie": "EPA706597", "nota": "EPA, decil de salarios del empleo principal. Bruto, jornada completa y parcial."},
+    {"id": "salario_medio", "nombre": "Salario medio bruto mensual (todas las edades)", "unidad": "€", "frecuencia": "A",
+     "serie": "EPA706575", "nota": "EPA, decil de salarios del empleo principal. Bruto, jornada completa y parcial."},
 ]
 
 # En 2026 Eurostat pasó el IAPC a la clasificación ECOICOP 2: los datos hasta 2025 están en
@@ -95,6 +102,16 @@ EUROSTAT = [
     {"id": "saldo_publico", "nombre": "Saldo público (% del PIB)", "unidad": "% del PIB", "frecuencia": "Q",
      "nota": "Capacidad (+) o necesidad (−) de financiación de las administraciones públicas: negativo = déficit. Corregido de estacionalidad y calendario.",
      "tramos": [{"tabla": "gov_10q_ggnfa", "filtros": {"unit": "PC_GDP", "sector": "S13", "na_item": "B9", "s_adj": "SCA"}}]},
+    # Paro de los jóvenes según su nivel de estudios (trimestral, sin desestacionalizar)
+    {"id": "paro_jovenes_estudios_bajos", "nombre": "Paro juvenil con estudios bajos (15-24 años)", "unidad": "% de los activos de 15 a 24 años", "frecuencia": "Q",
+     "nota": "Como mucho la ESO (CINE 0-2). Trimestral y sin desestacionalizar: compara cada trimestre con el mismo del año anterior.",
+     "tramos": [{"tabla": "lfsq_urgaed", "filtros": {"sex": "T", "age": "Y15-24", "isced11": "ED0-2", "unit": "PC"}}]},
+    {"id": "paro_jovenes_estudios_medios", "nombre": "Paro juvenil con estudios medios (15-24 años)", "unidad": "% de los activos de 15 a 24 años", "frecuencia": "Q",
+     "nota": "Bachillerato o FP de grado medio (CINE 3-4). Trimestral y sin desestacionalizar.",
+     "tramos": [{"tabla": "lfsq_urgaed", "filtros": {"sex": "T", "age": "Y15-24", "isced11": "ED3_4", "unit": "PC"}}]},
+    {"id": "paro_jovenes_estudios_superiores", "nombre": "Paro juvenil con estudios superiores (15-24 años)", "unidad": "% de los activos de 15 a 24 años", "frecuencia": "Q",
+     "nota": "FP de grado superior o universidad (CINE 5-8). Trimestral y sin desestacionalizar.",
+     "tramos": [{"tabla": "lfsq_urgaed", "filtros": {"sex": "T", "age": "Y15-24", "isced11": "ED5-8", "unit": "PC"}}]},
     # Jóvenes, empleo y tecnología (anuales; la referencia europea es la UE-27, no la zona euro)
     {"id": "ninis", "nombre": "Jóvenes que ni estudian ni trabajan (15-29 años)", "unidad": "% de los jóvenes de 15 a 29 años", "frecuencia": "A",
      "nota": "Tasa NEET: no tienen empleo y no reciben educación ni formación (ni reglada ni no reglada).",

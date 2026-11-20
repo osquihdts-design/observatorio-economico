@@ -8,7 +8,7 @@ import { trazasPrevision } from './previsiones.js';
 const WEB = 'https://osquihdts-design.github.io/observatorio-economico/';
 const FUENTES = { INE: 'INE', EUROSTAT: 'Eurostat', BCE: 'BCE' };
 // Página del observatorio donde se explica cada indicador (para el enlace del pie).
-const PAGINA = (id) => (/^(ipc|iapc)/.test(id) ? 'inflacion' : /^(ninis|empleo_jovenes|abandono|titulados|competencias|especialistas|empresas_ia|ia_)/.test(id) ? 'jovenes' : /paro/.test(id) ? 'laboral'
+const PAGINA = (id) => (/^(ipc|iapc)/.test(id) ? 'inflacion' : /^(ninis|empleo_jovenes|abandono|titulados|competencias|especialistas|empresas_ia|ia_|salario|paro_jovenes_estudios)/.test(id) ? 'jovenes' : /paro/.test(id) ? 'laboral'
   : /^(bce|euribor|tipo_hipotecas|m3)/.test(id) ? 'monetaria' : /^(ipv|precio_vivienda|etcl)/.test(id) ? 'vivienda'
     : /^(bono|deuda|saldo)/.test(id) ? 'finanzas' : `mapa/${id}`);
 

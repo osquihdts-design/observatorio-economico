@@ -27,7 +27,7 @@
 .registro time { font: 600 12px var(--mono); color: var(--muted); padding-top: 2px; }
 
 /* Jóvenes, empleo y tecnología */
-.kpis-jovenes { grid-template-columns: repeat(6, 1fr); margin-bottom: 0; }
+.kpis-jovenes { grid-template-columns: repeat(4, 1fr); margin-bottom: 0; }
 .titulo-bloque { margin: 18px 0 0; font: 700 22px var(--display); letter-spacing: -0.01em; }
 @media (max-width: 1300px) { .kpis-jovenes { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 700px) { .kpis-jovenes { grid-template-columns: repeat(2, 1fr); } }

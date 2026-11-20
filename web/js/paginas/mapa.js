@@ -77,6 +77,18 @@ const FICHAS = {
     leer: 'Las reglas europeas fijan un déficit máximo del 3 % del PIB (−3). Más alto (azul) = cuentas más saneadas.',
   },
 };
+// Paro juvenil por nivel de estudios (trimestral, sin desestacionalizar)
+const PARO_ESTUDIOS = (nivel, que) => ({
+  unidad: '% de los activos de 15 a 24 años', corta: '%', escala: 'malo',
+  que: `Paro de los jóvenes de 15 a 24 años que tienen ${que}, sobre los que trabajan o buscan trabajo con ese nivel. Trimestral y sin desestacionalizar.`,
+  leer: `Cuanto más alto, peor (rojo). Compáralo con los otros niveles: el paro baja cuanto más se estudia. Nivel: ${nivel}.`,
+});
+Object.assign(FICHAS, {
+  paro_jovenes_estudios_bajos: PARO_ESTUDIOS('CINE 0-2', 'como mucho la ESO'),
+  paro_jovenes_estudios_medios: PARO_ESTUDIOS('CINE 3-4', 'bachillerato o FP de grado medio'),
+  paro_jovenes_estudios_superiores: PARO_ESTUDIOS('CINE 5-8', 'FP de grado superior o estudios universitarios'),
+});
+
 // Jóvenes, empleo y tecnología (anuales; referencia: UE-27)
 Object.assign(FICHAS, {
   ninis: {
