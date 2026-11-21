@@ -64,7 +64,7 @@ export default {
 
       <section class="card texto-largo">
         <h2>Quién lo hace</h2>
-        <p>Es el proyecto personal de un estudiante de Economía. No tiene publicidad ni recoge datos personales (salvo el correo de quien se suscribe al boletín, que gestiona un servicio externo), y el código es abierto:
+        <p>Es el proyecto personal de un estudiante de Economía. No tiene publicidad ni recoge datos personales (salvo el correo de quien se suscribe al boletín), y el código es abierto:
         cualquiera puede revisar cómo se descarga y calcula cada cifra en <a href="${REPOSITORIO}" target="_blank" rel="noopener">GitHub</a>.</p>
         <p>¿Has visto un error o echas en falta un indicador? Escríbelo en las
         <a href="${REPOSITORIO}/issues" target="_blank" rel="noopener">sugerencias del proyecto (GitHub)</a>.</p>
@@ -92,7 +92,7 @@ export default {
         <ul>
           <li><strong>Qué se guarda:</strong> solo tu dirección de correo, y solo si te suscribes y lo confirmas desde el enlace que recibes (doble confirmación).</li>
           <li><strong>Para qué:</strong> únicamente para enviarte el resumen. No se usa para publicidad ni se cede a nadie.</li>
-          <li><strong>Dónde:</strong> la lista la gestiona el servicio de boletines Buttondown; esta web no guarda correos ni usa cookies de seguimiento.</li>
+          <li><strong>Dónde:</strong> en una hoja de cálculo privada de Google del proyecto, y los correos salen de su cuenta de Gmail (Google actúa como proveedor). Esta web no guarda correos ni usa cookies de seguimiento.</li>
           <li><strong>Baja:</strong> cada correo tiene un enlace para darte de baja con un clic, y se borra tu dirección.</li>
           <li><strong>Base legal:</strong> tu consentimiento (artículo 6.1.a del RGPD), que puedes retirar en cualquier momento.</li>
         </ul>
