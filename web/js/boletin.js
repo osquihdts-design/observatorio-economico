@@ -1,11 +1,13 @@
 // Banner para recibir las novedades por correo (como mucho un correo al día).
-// La web no guarda ningún correo: el formulario lo envía directamente al servicio de boletines (Buttondown),
-// que pide confirmación por correo (doble opt-in) y pone un enlace de baja en cada envío.
-// El contenido sale del RSS diario que genera scripts/publicar_web.py (novedades.xml).
+// La web no guarda ningún correo: el formulario lo envía al programa de Google Apps Script del proyecto
+// (boletin/Codigo.gs), que lo apunta en una hoja de cálculo, pide confirmación por correo (doble opt-in)
+// y pone un enlace de baja en cada envío. El contenido sale de api/novedades.json, que genera
+// scripts/publicar_web.py cada día (también como RSS en novedades.xml).
 import { ESTATICO, WEB_PUBLICA } from './api.js';
 
-// Nombre de usuario del boletín en Buttondown. Mientras esté vacío, el banner ofrece solo el RSS.
-export const BOLETIN_USUARIO = '';
+// Dirección de la aplicación web de Apps Script (https://script.google.com/macros/s/…/exec).
+// Mientras esté vacía, el banner ofrece solo el RSS. Ver boletin/COMO-ACTIVARLO.md.
+export const BOLETIN_URL = '';
 
 export const RSS = ESTATICO ? 'novedades.xml' : `${WEB_PUBLICA}novedades.xml`;
 const CLAVE = 'observatorio:boletin';
@@ -13,14 +15,14 @@ const leer = () => { try { return JSON.parse(localStorage.getItem(CLAVE)) || {};
 const guardar = (v) => { try { localStorage.setItem(CLAVE, JSON.stringify(v)); } catch { /* sin almacenamiento */ } };
 
 function formulario() {
-  if (!BOLETIN_USUARIO) {
+  if (!BOLETIN_URL) {
     return `<p class="boletin-nota">La suscripción por correo estará disponible muy pronto. Mientras tanto, puedes seguir las
       novedades con cualquier lector <a href="${RSS}" target="_blank" rel="noopener">RSS</a>.</p>`;
   }
-  return `<form class="boletin-form" action="https://buttondown.com/api/emails/embed-subscribe/${BOLETIN_USUARIO}" method="post" target="_blank">
+  return `<form class="boletin-form" action="${BOLETIN_URL}" method="post" target="_blank">
       <label class="sr-only" for="boletin-email">Tu correo electrónico</label>
       <input type="email" name="email" id="boletin-email" placeholder="tu@correo.com" autocomplete="email" required />
-      <input type="hidden" name="tag" value="observatorio-web" />
+      <input type="text" name="web" class="sr-only" tabindex="-1" autocomplete="off" aria-hidden="true" />
       <button type="submit" class="btn primario">Suscribirme</button>
       <label class="boletin-consentimiento"><input type="checkbox" required />
         <span>Acepto recibir el resumen y he leído la <a href="#/sobre?ir=privacidad">nota de privacidad</a>.</span></label>
